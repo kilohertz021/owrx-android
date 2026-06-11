@@ -1,0 +1,22 @@
+# Gradle / Android build output
+.gradle/
+build/
+**/build/
+
+# Local machine configuration
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+
+# APK / release artifacts
+*.apk
+*.aab
+*.ap_
+
+# Logs
+*.log
+
+# Codex local attachments
+.codex-remote-attachments/

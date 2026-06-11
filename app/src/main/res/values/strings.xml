@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OWRX+</string>
+    <string name="playback_channel_name">OWRX+ playback</string>
+    <string name="playback_channel_description">Keeps OWRX+ audio active while the app is in the background.</string>
+    <string name="playback_notification">Receiver is running in the background</string>
+</resources>
