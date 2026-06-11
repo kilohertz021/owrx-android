@@ -1,3 +1,16 @@
+# Editor temporary files
+*~
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Local backups
+*.bak
+*.backup
+
 # Gradle / Android build output
 .gradle/
 build/
