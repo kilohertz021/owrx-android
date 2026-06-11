@@ -16,6 +16,7 @@ This project is an early Android app for personal OpenWebRX+ use:
 
 - opens the kilohertz OpenWebRX+ receiver directly
 - enables JavaScript, WebSocket and WebAudio support through `WebView`
+- adds a native Android control overlay for common receiver actions
 - keeps the screen awake while the receiver is visible
 - starts a foreground service for background playback attempts
 - shows a persistent notification while the receiver is running
@@ -85,6 +86,22 @@ See:
 ```text
 docs/background-playback.md
 ```
+
+## Native control overlay
+
+The app now adds an Android-native overlay above the WebView:
+
+- live frequency/status strip
+- tune down/up
+- tuning step down/up
+- mute
+- receiver/status/log panel shortcuts
+- waterfall zoom controls
+- waterfall auto-range
+- reload
+- hide/show control panel
+
+These controls currently call OpenWebRX+ browser functions through JavaScript injection. This keeps the working web receiver intact while improving phone ergonomics.
 
 ## Documentation
 

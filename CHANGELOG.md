@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Native Android overlay above the OpenWebRX+ WebView
+- Live frequency/status strip
+- Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload
+- Hide/show behavior for the native control panel
+
 ## v0.1.0 - 2026-06-10
 
 Initial private working version.
