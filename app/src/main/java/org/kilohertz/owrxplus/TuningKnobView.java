@@ -20,6 +20,8 @@ public class TuningKnobView extends View {
     private float touchDownX;
     private float touchDownY;
     private long touchDownTime;
+    private float indicatorAngle = -90f;
+    private String stepLabel = "step";
 
     public interface Listener {
         void onTick(int direction);
@@ -39,6 +41,15 @@ public class TuningKnobView extends View {
 
     public void setListener(Listener listener) {
         this.listener = listener;
+    }
+
+    public void setStepLabel(String stepLabel) {
+        if (stepLabel == null || stepLabel.trim().length() == 0) {
+            this.stepLabel = "step";
+        } else {
+            this.stepLabel = stepLabel.trim();
+        }
+        invalidate();
     }
 
     private void init() {
@@ -81,6 +92,16 @@ public class TuningKnobView extends View {
         arc.set(cx - radius + dp(12), cy - radius + dp(12), cx + radius - dp(12), cy + radius - dp(12));
         canvas.drawArc(arc, 215, 110, false, paint);
 
+        double indicatorRadians = Math.toRadians(indicatorAngle);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xFFFFFFFF);
+        canvas.drawCircle(
+                cx + (float) Math.cos(indicatorRadians) * (radius - dp(18)),
+                cy + (float) Math.sin(indicatorRadians) * (radius - dp(18)),
+                dp(4),
+                paint
+        );
+
         paint.setStrokeWidth(dp(2));
         paint.setColor(0x99FFFFFF);
         for (int i = -5; i <= 5; i++) {
@@ -108,11 +129,13 @@ public class TuningKnobView extends View {
         paint.setStyle(Paint.Style.FILL);
         paint.setTextAlign(Paint.Align.CENTER);
         paint.setColor(0xFFFFFFFF);
-        paint.setTextSize(dp(15));
-        canvas.drawText("TUNE", cx, cy - dp(4), paint);
+        paint.setTextSize(dp(14));
+        canvas.drawText("TUNE", cx, cy - dp(9), paint);
         paint.setColor(0xFFB7E4CE);
-        paint.setTextSize(dp(10));
-        canvas.drawText("tap step", cx, cy + dp(14), paint);
+        paint.setTextSize(dp(12));
+        canvas.drawText(stepLabel, cx, cy + dp(10), paint);
+        paint.setTextSize(dp(9));
+        canvas.drawText("tap", cx, cy + dp(25), paint);
     }
 
     @Override
@@ -164,10 +187,22 @@ public class TuningKnobView extends View {
     }
 
     private void tick(int direction) {
+        indicatorAngle = normalizeIndicator(indicatorAngle + direction * 14f);
+        invalidate();
         performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK);
         if (listener != null) {
             listener.onTick(direction);
         }
+    }
+
+    private float normalizeIndicator(float angle) {
+        while (angle > 180) {
+            angle -= 360;
+        }
+        while (angle < -180) {
+            angle += 360;
+        }
+        return angle;
     }
 
     private float angleFor(float x, float y) {

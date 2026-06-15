@@ -98,10 +98,10 @@ The app adds an Android-native overlay above the WebView:
 - live frequency/status strip
 - searchable OpenWebRX receiver list
 - rotary tuning knob
+- current tuning step displayed inside the tuning knob
 - center tap on the tuning knob cycles tuning step
 - mute
-- receiver/status/log panel shortcuts
-- waterfall zoom controls
+- adjacent waterfall zoom controls
 - waterfall auto-range
 - reload
 - hide/show control panel

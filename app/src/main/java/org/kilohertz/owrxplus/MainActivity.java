@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
     private EditText receiverSearch;
+    private TuningKnobView tuningKnob;
     private ReceiverCatalog receiverCatalog;
     private ReceiverInfo currentReceiver;
     private final List<ReceiverInfo> receivers = new ArrayList<ReceiverInfo>();
@@ -163,7 +164,7 @@ public class MainActivity extends Activity {
         frequencyText.setSingleLine(true);
         textStack.addView(frequencyText);
 
-        bar.addView(textStack, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        bar.addView(textStack, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
 
         statusText = new TextView(this);
         statusText.setText("OpenWebRX compatible");
@@ -171,9 +172,9 @@ public class MainActivity extends Activity {
         statusText.setTextSize(11);
         statusText.setGravity(Gravity.END);
         statusText.setSingleLine(true);
-        bar.addView(statusText, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        bar.addView(statusText, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.7f));
 
-        Button list = createButton("List");
+        Button list = createButton("SDRs");
         list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -182,7 +183,7 @@ public class MainActivity extends Activity {
         });
         bar.addView(list, new LinearLayout.LayoutParams(dp(64), dp(38)));
 
-        Button toggle = createButton("Hide");
+        Button toggle = createButton("Deck");
         toggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -204,13 +205,13 @@ public class MainActivity extends Activity {
         deck.setOrientation(LinearLayout.HORIZONTAL);
 
         deck.addView(sideColumn(
-                control("Rx", panelScript("openwebrx-panel-receiver")),
-                control("Status", panelScript("openwebrx-panel-status")),
-                control("Log", panelScript("openwebrx-panel-log"))
+                control("Step", stepScript(1)),
+                control("Mute", "if (window.UI && typeof UI.toggleMute==='function') UI.toggleMute();"),
+                control("Auto", "if (window.Waterfall && typeof Waterfall.setAutoRange==='function') Waterfall.setAutoRange();")
         ), new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
-        TuningKnobView knob = new TuningKnobView(this);
-        knob.setListener(new TuningKnobView.Listener() {
+        tuningKnob = new TuningKnobView(this);
+        tuningKnob.setListener(new TuningKnobView.Listener() {
             @Override
             public void onTick(int direction) {
                 tune(direction);
@@ -223,23 +224,15 @@ public class MainActivity extends Activity {
         });
         LinearLayout.LayoutParams knobParams = new LinearLayout.LayoutParams(dp(168), dp(168));
         knobParams.setMargins(dp(8), 0, dp(8), 0);
-        deck.addView(knob, knobParams);
+        deck.addView(tuningKnob, knobParams);
 
         deck.addView(sideColumn(
-                control("Mute", "if (window.UI && typeof UI.toggleMute==='function') UI.toggleMute();"),
-                control("Zoom", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
-                control("Auto", "if (window.Waterfall && typeof Waterfall.setAutoRange==='function') Waterfall.setAutoRange();")
+                control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
+                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
+                control("Reload", "location.reload();")
         ), new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
         panel.addView(deck);
-
-        LinearLayout bottom = new LinearLayout(this);
-        bottom.setOrientation(LinearLayout.HORIZONTAL);
-        bottom.setGravity(Gravity.CENTER);
-        bottom.addView(control("Step", stepScript(1)), smallButtonParams());
-        bottom.addView(control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"), smallButtonParams());
-        bottom.addView(control("Reload", "location.reload();"), smallButtonParams());
-        panel.addView(bottom);
 
         return panel;
     }
@@ -589,8 +582,14 @@ public class MainActivity extends Activity {
                         + "var c=document.querySelector('#openwebrx-clock-utc');"
                         + "var s=document.getElementById('openwebrx-tuning-step-listbox');"
                         + "var step=s&&s.options[s.selectedIndex]?s.options[s.selectedIndex].text:'';"
+                        + "var raw=f?((f.innerText||f.textContent||'')+''):'';"
+                        + "raw=raw.replace(/\\s+/g,' ').trim();"
+                        + "var mhz=raw.match(/(\\d+[,.]\\d+)\\s*M\\s*H\\s*z/i);"
+                        + "var khz=raw.match(/(\\d+[,.]\\d+)\\s*k\\s*H\\s*z/i);"
+                        + "var hz=raw.match(/(\\d{5,})\\s*H\\s*z/i);"
+                        + "var freq=mhz?(mhz[1].replace(',','.')+' MHz'):(khz?(khz[1].replace(',','.')+' kHz'):(hz?((parseFloat(hz[1])/1000000).toFixed(4)+' MHz'):raw));"
                         + "return JSON.stringify({"
-                        + "freq:f&&f.textContent?f.textContent.trim():'',"
+                        + "freq:freq,"
                         + "meter:m&&m.textContent?m.textContent.trim():'',"
                         + "clock:c&&c.textContent?c.textContent.trim():'',"
                         + "step:step"
@@ -608,7 +607,10 @@ public class MainActivity extends Activity {
         String step = extractJsonValue(value, "step");
 
         if (freq.length() > 0) {
-            frequencyText.setText(freq);
+            frequencyText.setText(cleanFrequency(freq));
+        }
+        if (tuningKnob != null) {
+            tuningKnob.setStepLabel(step);
         }
 
         StringBuilder status = new StringBuilder();
@@ -671,6 +673,35 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(40), 1);
         params.setMargins(dp(4), dp(8), dp(4), 0);
         return params;
+    }
+
+    private String cleanFrequency(String frequency) {
+        String value = frequency.replace(',', '.').replaceAll("\\s+", " ").trim();
+        java.util.regex.Matcher mhz = java.util.regex.Pattern
+                .compile("(\\d+(?:\\.\\d+)?)\\s*M\\s*H\\s*z", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(value);
+        if (mhz.find()) {
+            return mhz.group(1) + " MHz";
+        }
+
+        java.util.regex.Matcher khz = java.util.regex.Pattern
+                .compile("(\\d+(?:\\.\\d+)?)\\s*k\\s*H\\s*z", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(value);
+        if (khz.find()) {
+            return khz.group(1) + " kHz";
+        }
+
+        java.util.regex.Matcher hz = java.util.regex.Pattern
+                .compile("(\\d{5,})\\s*H\\s*z", java.util.regex.Pattern.CASE_INSENSITIVE)
+                .matcher(value);
+        if (hz.find()) {
+            try {
+                return String.format(Locale.US, "%.4f MHz", Double.parseDouble(hz.group(1)) / 1000000.0);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        return value.length() > 16 ? value.substring(0, 16).trim() : value;
     }
 
     private FrameLayout.LayoutParams topOverlayParams() {

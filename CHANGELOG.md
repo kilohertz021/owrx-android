@@ -10,6 +10,9 @@
 - Persistent last-selected receiver
 - Custom rotary tuning knob replacing tune up/down buttons
 - Center tap on tuning knob to cycle tuning step
+- Current tuning step displayed directly inside the tuning knob
+- Cleaner control layout with adjacent zoom controls
+- Frequency text cleanup for mixed OpenWebRX unit labels
 - Native Android overlay above the OpenWebRX+ WebView
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload
