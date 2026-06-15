@@ -1,28 +1,31 @@
-# OWRX+ Android
+# SignalDeck Android
 
-Private Android companion app for the `kilohertz_sdr` OpenWebRX+ receiver.
+Private Android SDR receiver console focused on OpenWebRX-compatible receivers.
 
-The current app is a lightweight native Android shell around:
+The current default receiver is:
 
 ```text
 https://sdr.kilohertz021.org/
 ```
 
-It uses Android `WebView` for the OpenWebRX+ interface and adds Android-side lifecycle handling for long receiver sessions.
+It uses Android `WebView` for receiver pages and adds an independent Android-native control layer for receiver selection and common controls.
 
 ## What is this?
 
-This project is an early Android app for personal OpenWebRX+ use:
+This project is an early Android app for personal SDR listening:
 
-- opens the kilohertz OpenWebRX+ receiver directly
+- opens the kilohertz receiver by default
+- loads OpenWebRX receiver entries from `rx-tx.info`
+- provides a searchable receiver list
 - enables JavaScript, WebSocket and WebAudio support through `WebView`
-- adds a native Android control overlay for common receiver actions
+- adds an independent native Android control overlay
+- replaces tune up/down buttons with a rotary tuning knob
 - keeps the screen awake while the receiver is visible
 - starts a foreground service for background playback attempts
 - shows a persistent notification while the receiver is running
 - uses a partial wake lock to reduce Android background sleep issues
 
-The first version intentionally stays close to OpenWebRX+ itself. The native layer is small so the receiver UI stays familiar and easy to debug.
+The UI is intentionally not a copy of any existing OpenWebRX Android app. It is an independent client for compatible receiver endpoints.
 
 ## Supported setup
 
@@ -34,6 +37,7 @@ Tested with:
 - Gradle 8.13 wrapper
 - Android emulator `Medium_Phone_API_36.1`
 - `https://sdr.kilohertz021.org/`
+- OpenWebRX receiver directory data from `https://rx-tx.info/map-sdr-points`
 
 The project should also run on a real Android phone with network access to the receiver.
 
@@ -73,7 +77,7 @@ Use Android Studio Run, or install with `adb`:
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-Open `OWRX+` on the device and start the receiver from the OpenWebRX+ page.
+Open `SignalDeck` on the device and start the receiver from the loaded receiver page.
 
 ## Background behavior
 
@@ -89,11 +93,12 @@ docs/background-playback.md
 
 ## Native control overlay
 
-The app now adds an Android-native overlay above the WebView:
+The app adds an Android-native overlay above the WebView:
 
 - live frequency/status strip
-- tune down/up
-- tuning step down/up
+- searchable OpenWebRX receiver list
+- rotary tuning knob
+- center tap on the tuning knob cycles tuning step
 - mute
 - receiver/status/log panel shortcuts
 - waterfall zoom controls
@@ -101,7 +106,7 @@ The app now adds an Android-native overlay above the WebView:
 - reload
 - hide/show control panel
 
-These controls currently call OpenWebRX+ browser functions through JavaScript injection. This keeps the working web receiver intact while improving phone ergonomics.
+These controls currently call compatible receiver browser functions through JavaScript injection. This keeps the working web receiver intact while improving phone ergonomics.
 
 ## Documentation
 
@@ -112,6 +117,7 @@ More details:
 - `docs/background-playback.md`
 - `docs/troubleshooting.md`
 - `docs/release.md`
+- `docs/public-positioning.md`
 
 ## Project layout
 
@@ -126,9 +132,9 @@ docs/                         Project documentation
 ## Limitations
 
 - This is an early private working version.
-- The UI is currently the OpenWebRX+ web UI inside Android WebView.
+- The receiver display is currently the compatible web UI inside Android WebView.
 - Background playback is best-effort in the current WebView architecture.
-- The receiver URL is currently hardcoded for the kilohertz SDR.
+- The receiver list is filtered to OpenWebRX entries from rx-tx.info.
 - The project has been built locally, but real-phone testing is still needed.
 
 ## License

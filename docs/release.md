@@ -22,6 +22,9 @@ app/build/outputs/apk/debug/app-debug.apk
 - Check audio start, mute and volume.
 - Check background behavior with screen locked.
 - Check notification permission on Android 13+.
+- Check receiver list loading from `rx-tx.info`.
+- Check fallback receiver list by testing without network.
+- Check public-positioning wording in `docs/public-positioning.md` before making the repository public.
 - Update `CHANGELOG.md`.
 - Bump `versionCode` and `versionName` in `app/build.gradle` if needed.
 

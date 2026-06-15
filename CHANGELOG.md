@@ -4,6 +4,12 @@
 
 ### Added
 
+- SignalDeck app naming and independent receiver-console positioning
+- Live OpenWebRX receiver catalog loader from `rx-tx.info`
+- Searchable receiver drawer with fallback receiver list
+- Persistent last-selected receiver
+- Custom rotary tuning knob replacing tune up/down buttons
+- Center tap on tuning knob to cycle tuning step
 - Native Android overlay above the OpenWebRX+ WebView
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload

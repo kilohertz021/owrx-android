@@ -29,6 +29,22 @@ See:
 docs/background-playback.md
 ```
 
+## Receiver list does not load
+
+SignalDeck loads OpenWebRX entries from:
+
+```text
+https://rx-tx.info/map-sdr-points
+```
+
+If the request fails, the app falls back to a small local receiver list including `kilohertz_sdr`.
+
+Check:
+
+- Android emulator or phone has internet access
+- `rx-tx.info` is reachable
+- receiver search text is not filtering out all entries
+
 ## No audio
 
 Check:
