@@ -219,7 +219,7 @@ public class MainActivity extends Activity {
         panel.addView(createDeckHeader());
 
         LinearLayout deck = new LinearLayout(this);
-        deck.setGravity(Gravity.CENTER);
+        deck.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         deck.setOrientation(LinearLayout.HORIZONTAL);
 
         tuningKnob = new TuningKnobView(this);
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
-        ), new LinearLayout.LayoutParams(dp(118), LinearLayout.LayoutParams.WRAP_CONTENT));
+        ), new LinearLayout.LayoutParams(dp(108), LinearLayout.LayoutParams.WRAP_CONTENT));
 
         panel.addView(deck);
 
@@ -304,7 +304,7 @@ public class MainActivity extends Activity {
     private LinearLayout sideColumn(Button... buttons) {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
-        column.setGravity(Gravity.CENTER);
+        column.setGravity(Gravity.TOP);
         for (Button button : buttons) {
             column.addView(button, columnButtonParams());
         }
@@ -313,7 +313,7 @@ public class MainActivity extends Activity {
 
     private View createNativeArrowBlocker() {
         View blocker = new View(this);
-        blocker.setBackgroundColor(Color.TRANSPARENT);
+        blocker.setBackgroundColor(0xFF07121B);
         blocker.setClickable(true);
         blocker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -885,9 +885,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnButtonParams() {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(40)
+                dp(30)
         );
-        params.setMargins(dp(3), dp(4), dp(3), dp(4));
+        params.setMargins(dp(3), dp(2), dp(3), dp(2));
         return params;
     }
 
@@ -941,9 +941,9 @@ public class MainActivity extends Activity {
     }
 
     private FrameLayout.LayoutParams nativeArrowBlockerParams() {
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(108), dp(46));
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(96), dp(34));
         params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        params.setMargins(0, dp(82), 0, 0);
+        params.setMargins(0, dp(30), 0, 0);
         return params;
     }
 
