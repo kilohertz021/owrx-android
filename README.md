@@ -1,142 +1,83 @@
 # SignalDeck Android
 
-Private Android SDR receiver console focused on OpenWebRX-compatible receivers.
+SignalDeck - тестовое Android-приложение для прослушивания SDR-приемников OpenWebRX.
 
-The current default receiver is:
+Приложение открывает `kilohertz_sdr` по умолчанию, показывает водопад, частоту и добавляет удобную мобильную панель управления с ручкой `TUNE`, выбором режимов и списком SDR-приемников.
 
-```text
-https://sdr.kilohertz021.org/
-```
+## Что умеет
 
-It uses Android `WebView` for receiver pages and adds an independent Android-native control layer for receiver selection and common controls.
+- открывает OpenWebRX-совместимые SDR-приемники;
+- показывает водопад и шкалу частот;
+- дает удобную ручку `TUNE` для перестройки частоты;
+- меняет шаг перестройки тапом по центру ручки;
+- открывает панель режимов через `Receiver`;
+- показывает список SDR через `SDRs`;
+- умеет искать приемники по списку `rx-tx.info`;
+- держит `kilohertz_sdr` закрепленным сверху;
+- учитывает вырезы камеры и нижнюю навигационную область Android.
 
-## What is this?
+## Как установить
 
-This project is an early Android app for personal SDR listening:
+Сейчас это тестовая версия, не из Google Play.
 
-- opens the kilohertz receiver by default
-- loads OpenWebRX receiver entries from `rx-tx.info`
-- provides a searchable receiver list
-- enables JavaScript, WebSocket and WebAudio support through `WebView`
-- adds an independent native Android control overlay
-- replaces tune up/down buttons with a rotary tuning knob
-- keeps the screen awake while the receiver is visible
-- starts a foreground service for background playback attempts
-- shows a persistent notification while the receiver is running
-- uses a partial wake lock to reduce Android background sleep issues
+Если тебе прислали APK-файл:
 
-The UI is intentionally not a copy of any existing OpenWebRX Android app. It is an independent client for compatible receiver endpoints.
+1. Скачай APK на Android-телефон.
+2. Открой файл.
+3. Если Android попросит разрешить установку из этого источника, разреши для Telegram, браузера или файлового менеджера.
+4. Нажми `Установить`.
+5. Открой `SignalDeck`.
 
-## Supported setup
+Предупреждение Android про установку не из Play Market для тестовых APK нормально.
 
-Tested with:
+## Как пользоваться
 
-- Android Studio
-- Android SDK Platform 36
-- Android Gradle Plugin 8.13.0
-- Gradle 8.13 wrapper
-- Android emulator `Medium_Phone_API_36.1`
-- `https://sdr.kilohertz021.org/`
-- OpenWebRX receiver directory data from `https://rx-tx.info/map-sdr-points`
+- `TUNE` - крути ручку пальцем, чтобы менять частоту.
+- Тап по центру `TUNE` - сменить шаг перестройки.
+- `Receiver` - открыть режимы приемника: `FM`, `AM`, `USB`, `LSB`, `CW` и другие.
+- `SDRs` - открыть список приемников.
+- `Zoom +` / `Zoom -` - приблизить или отдалить водопад.
+- Зеленые/желтые метки на шкале - подсказки bandplan/skimmer от OpenWebRX.
 
-The project should also run on a real Android phone with network access to the receiver.
+Не все чужие SDR из списка работают стабильно. Некоторые серверы могут быть выключены, перегружены или несовместимы. В таком случае приложение может показать `No data`.
 
-## Quick start
+## Для чего этот репозиторий
 
-### 1. Open in Android Studio
+Репозиторий открыт, чтобы можно было посмотреть исходный код приложения и убедиться, что APK делает ровно то, что заявлено.
 
-Open this directory:
+Это независимый Android-клиент для OpenWebRX-совместимых приемников. Он не является официальным приложением OpenWebRX и не копирует коммерческие Android-клиенты.
 
-```text
-C:\Users\vadim\Documents\Codex\2026-06-10\owrx-android-studio-codex
-```
+## Для разработчиков
 
-Android Studio should detect it as a normal Gradle Android project.
+Проект собирается как обычное Android-приложение через Gradle.
 
-### 2. Build debug APK
-
-From the repository root:
+Кратко:
 
 ```powershell
-$env:JAVA_HOME='C:\Program Files\Android\Android Studio\jbr'
-$env:Path="$env:JAVA_HOME\bin;$env:Path"
 .\gradlew.bat assembleDebug
 ```
 
-The debug APK is created at:
+Debug APK появится здесь:
 
 ```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 3. Run
+Подробности:
 
-Use Android Studio Run, or install with `adb`:
+- [USER_MANUAL.md](USER_MANUAL.md)
+- [docs/build.md](docs/build.md)
+- [docs/install.md](docs/install.md)
+- [docs/background-playback.md](docs/background-playback.md)
+- [docs/troubleshooting.md](docs/troubleshooting.md)
+- [docs/release.md](docs/release.md)
+- [docs/public-positioning.md](docs/public-positioning.md)
 
-```powershell
-adb install -r app\build\outputs\apk\debug\app-debug.apk
-```
+## Статус
 
-Open `SignalDeck` on the device and start the receiver from the loaded receiver page.
+Тестовая версия. Основной сценарий - мобильный доступ к `kilohertz_sdr` и другим OpenWebRX-приемникам.
 
-## Background behavior
-
-Android is strict about background browser-like apps. This app includes a foreground service and wake lock, but the current WebView-based architecture may still lose the OpenWebRX+ WebSocket when Android freezes JavaScript in the background.
-
-If stable background listening becomes the main goal, the next architecture should move receiver audio/WebSocket handling into a native foreground media service and keep WebView only as the visual control surface.
-
-See:
-
-```text
-docs/background-playback.md
-```
-
-## Native control overlay
-
-The app adds an Android-native overlay above the WebView:
-
-- live frequency/status strip
-- searchable OpenWebRX receiver list
-- rotary tuning knob
-- current tuning step displayed inside the tuning knob
-- center tap on the tuning knob cycles tuning step
-- mute
-- adjacent waterfall zoom controls
-- waterfall auto-range
-- reload
-- hide/show control panel
-
-These controls currently call compatible receiver browser functions through JavaScript injection. This keeps the working web receiver intact while improving phone ergonomics.
-
-## Documentation
-
-More details:
-
-- `USER_MANUAL.md`
-- `docs/build.md`
-- `docs/install.md`
-- `docs/background-playback.md`
-- `docs/troubleshooting.md`
-- `docs/release.md`
-- `docs/public-positioning.md`
-
-## Project layout
-
-```text
-app/                         Android application module
-app/src/main/java/...         MainActivity and keep-alive service
-app/src/main/res/...          Android resources
-gradle/wrapper/               Gradle wrapper
-docs/                         Project documentation
-```
-
-## Limitations
-
-- This is an early private working version.
-- The receiver display is currently the compatible web UI inside Android WebView.
-- Background playback is best-effort in the current WebView architecture.
-- The receiver list is filtered to OpenWebRX entries from rx-tx.info.
-- The project has been built locally, but real-phone testing is still needed.
+Фоновое воспроизведение в WebView пока best-effort: Android может ограничивать JavaScript/WebSocket при уходе приложения в фон.
 
 ## License
 

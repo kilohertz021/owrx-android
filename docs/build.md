@@ -13,7 +13,7 @@ The local SDK path belongs in `local.properties`, which is intentionally not com
 Example:
 
 ```properties
-sdk.dir=C\:\\Users\\vadim\\AppData\\Local\\Android\\Sdk
+sdk.dir=C\:\\Users\\<user>\\AppData\\Local\\Android\\Sdk
 ```
 
 ## Build from PowerShell
@@ -59,7 +59,7 @@ Failed to load native library 'native-platform.dll'
 make sure Gradle can write to the user Gradle cache:
 
 ```text
-C:\Users\vadim\.gradle
+C:\Users\<user>\.gradle
 ```
 
 In the Codex sandbox this may require elevated execution. In normal Android Studio usage it should not need special handling.
