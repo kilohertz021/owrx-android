@@ -4,6 +4,10 @@
 
 ### Added
 
+- Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
+- Native blocker added over the OpenWebRX image expander arrow
+- Native OpenWebRX Log and other non-Receiver panels are hidden in SignalDeck skin
+- Deck and Receiver panels now extend to the screen edges
 - Waterfall-safe Receiver handle behavior that no longer manipulates the native header drawer area
 - Deck header UTC moved to its own line and receiver list action renamed back to SDRs
 - Receiver open control moved to a native Android overlay so it works after the WebView panel is swiped closed

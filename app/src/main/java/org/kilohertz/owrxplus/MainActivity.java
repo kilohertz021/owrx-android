@@ -140,6 +140,8 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
 
+        root.addView(createNativeArrowBlocker(), nativeArrowBlockerParams());
+
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
 
@@ -307,6 +309,19 @@ public class MainActivity extends Activity {
             column.addView(button, columnButtonParams());
         }
         return column;
+    }
+
+    private View createNativeArrowBlocker() {
+        View blocker = new View(this);
+        blocker.setBackgroundColor(Color.TRANSPARENT);
+        blocker.setClickable(true);
+        blocker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideNativeOpenWebRxPanels();
+            }
+        });
+        return blocker;
     }
 
     private FrameLayout createReceiverDrawer() {
@@ -599,7 +614,7 @@ public class MainActivity extends Activity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showReceiverPanel();
+                toggleReceiverPanel();
             }
         });
         return button;
@@ -631,12 +646,26 @@ public class MainActivity extends Activity {
         runReceiverScript(stepScript(1));
     }
 
-    private void showReceiverPanel() {
+    private void toggleReceiverPanel() {
         runReceiverScript(
                 "var panel=document.getElementById('openwebrx-panel-receiver');"
-                        + "if(panel){panel.removeAttribute('hidden');"
+                        + "var visible=panel&&getComputedStyle(panel).display!=='none'&&panel.getClientRects().length>0;"
+                        + "if(panel&&visible){panel.style.display='none';}"
+                        + "else if(panel){panel.removeAttribute('hidden');"
                         + "panel.style.display='block';panel.style.visibility='visible';panel.style.opacity='1';}"
                         + "else{var b=document.querySelector('[data-toggle-panel=\"openwebrx-panel-receiver\"]');if(b){b.click();}}"
+                        + "var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');"
+                        + "for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';}}"
+        );
+    }
+
+    private void hideNativeOpenWebRxPanels() {
+        runReceiverScript(
+                "var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');"
+                        + "for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';}}"
+                        + "var nodes=document.body?document.body.querySelectorAll('*'):[];"
+                        + "for(var j=0;j<nodes.length;j++){var text=(nodes[j].textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();"
+                        + "if(text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0){nodes[j].style.display='none';}}"
         );
     }
 
@@ -685,12 +714,13 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin .webrx-rx-desc{font-size:11px!important;line-height:13px!important;color:#9fb5c3!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}"
                 + ".signaldeck-skin .openwebrx-main-buttons{display:none!important;}"
                 + ".signaldeck-skin #pstt{display:none!important;}"
+                + ".signaldeck-skin [id^=openwebrx-panel-]:not(#openwebrx-panel-receiver){display:none!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle{display:none!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:before{content:\\'\\';position:absolute!important;left:50%!important;top:4px!important;margin-left:-8px!important;width:0!important;height:0!important;border-left:8px solid transparent!important;border-right:8px solid transparent!important;border-top:9px solid #d7f6ff!important;filter:drop-shadow(0 0 7px rgba(159,234,255,.78))!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:after{content:\\'RECEIVER\\';position:absolute!important;left:0!important;right:0!important;bottom:1px!important;text-align:center!important;color:rgba(215,246,255,.72)!important;font:700 7px/8px sans-serif!important;letter-spacing:.8px!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle.sd-pull{transform:translateY(9px)!important;transition:transform .1s ease-out!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:8px!important;right:8px!important;top:126px!important;width:auto!important;max-width:none!important;height:34vh!important;max-height:34vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:4px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),0 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver - swipe up to close\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:0!important;right:0!important;top:126px!important;width:auto!important;max-width:none!important;height:34vh!important;max-height:34vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:4px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),0 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:4px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:4px!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
@@ -706,15 +736,12 @@ public class MainActivity extends Activity {
                 + "function receiverVisible(panel){if(!panel){return false;}var s=getComputedStyle(panel);return s.display!=='none'&&s.visibility!=='hidden'&&panel.getClientRects().length>0;}"
                 + "function showReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';panel.style.opacity='1';hideReceiverSections();return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
                 + "function hideReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.style.display='none';return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
+                + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var text=(ownText(nodes[i])||nodes[i].textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(text.indexOf('settings')>=0||text.indexOf('display')>=0){var section=nodes[i].closest('.openwebrx-section,.openwebrx-panel-section,.openwebrx-panel-line,fieldset,details')||nodes[i];section.style.display='none';section.setAttribute('data-signaldeck-hidden','true');var node=section.nextElementSibling;while(node){var nextText=(ownText(node)||node.textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(nextText.indexOf('controls')>=0||nextText.indexOf('modes')>=0){break;}if(nextText.indexOf('settings')>=0||nextText.indexOf('display')>=0||node.getAttribute('data-signaldeck-hidden')==='true'){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;continue;}break;}}}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<82&&r.width>=22&&r.width<=124&&r.height>=12&&r.height<=62&&r.top>76&&r.top<window.innerHeight*.48&&text.length===0){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>70&&r.top<window.innerHeight*.48){el.style.display='none';el.setAttribute('data-signaldeck-hidden','true');}}}"
-                + "hideReceiverSections();hideNativeImageExpander();"
-                + "var receiver=document.getElementById('openwebrx-panel-receiver');"
-                + "if(receiver){var sx=0,sy=0;receiver.addEventListener('touchstart',function(e){if(!e.touches||!e.touches.length){return;}sx=e.touches[0].clientX;sy=e.touches[0].clientY;receiver.classList.remove('sd-swipe-hint');},{passive:true});"
-                + "receiver.addEventListener('touchmove',function(e){if(!e.touches||!e.touches.length){return;}var dx=e.touches[0].clientX-sx;var dy=e.touches[0].clientY-sy;var ady=Math.abs(dy);receiver.classList.toggle('sd-swipe-hint',dx>28&&ady<48);receiver.classList.toggle('sd-swipe-up-hint',dy<-28&&Math.abs(dx)<80);},{passive:true});"
-                + "receiver.addEventListener('touchend',function(e){var touch=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!touch){return;}var dx=touch.clientX-sx;var dy=touch.clientY-sy;receiver.classList.remove('sd-swipe-hint');receiver.classList.remove('sd-swipe-up-hint');if((dx>78&&Math.abs(dy)<58)||(dy<-72&&Math.abs(dx)<95)){hideReceiver();}},{passive:true});}"
-                + "new MutationObserver(function(){hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"
+                + "hideForeignPanels();hideReceiverSections();hideNativeImageExpander();"
+                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }
 
@@ -899,7 +926,7 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM;
-        params.setMargins(dp(8), 0, dp(8), dp(8));
+        params.setMargins(0, 0, 0, 0);
         return params;
     }
 
@@ -909,7 +936,14 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM;
-        params.setMargins(dp(8), 0, dp(8), dp(8));
+        params.setMargins(0, 0, 0, 0);
+        return params;
+    }
+
+    private FrameLayout.LayoutParams nativeArrowBlockerParams() {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(108), dp(46));
+        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        params.setMargins(0, dp(82), 0, 0);
         return params;
     }
 
