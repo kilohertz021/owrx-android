@@ -67,6 +67,7 @@ public class MainActivity extends Activity {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean deckExpanded = true;
     private float deckTouchStartY;
+    private int emptyStatusTicks;
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -425,7 +426,8 @@ public class MainActivity extends Activity {
 
     private void seedFallbackReceivers() {
         receivers.clear();
-        receivers.addAll(receiverCatalog.fallbackReceivers());
+        addPinnedReceivers();
+        addReceivers(receiverCatalog.fallbackReceivers());
         renderReceivers();
     }
 
@@ -439,12 +441,8 @@ public class MainActivity extends Activity {
             @Override
             public void onLoaded(List<ReceiverInfo> loadedReceivers, String source) {
                 receivers.clear();
-                receivers.add(currentReceiver);
-                for (ReceiverInfo receiver : loadedReceivers) {
-                    if (!containsUrl(receivers, receiver.url)) {
-                        receivers.add(receiver);
-                    }
-                }
+                addPinnedReceivers();
+                addReceivers(loadedReceivers);
                 renderReceivers();
                 updateDeckMeta(receivers.size() + " receivers");
             }
@@ -452,11 +450,31 @@ public class MainActivity extends Activity {
             @Override
             public void onError(List<ReceiverInfo> fallback, String message) {
                 receivers.clear();
-                receivers.addAll(fallback);
+                addPinnedReceivers();
+                addReceivers(fallback);
                 renderReceivers();
                 updateDeckMeta("Catalog fallback");
             }
         });
+    }
+
+    private void addPinnedReceivers() {
+        addReceiver(homeReceiver());
+        if (!isHomeReceiver(currentReceiver)) {
+            addReceiver(currentReceiver);
+        }
+    }
+
+    private void addReceivers(List<ReceiverInfo> newReceivers) {
+        for (ReceiverInfo receiver : newReceivers) {
+            addReceiver(receiver);
+        }
+    }
+
+    private void addReceiver(ReceiverInfo receiver) {
+        if (receiver != null && !containsUrl(receivers, receiver.url)) {
+            receivers.add(receiver);
+        }
     }
 
     private boolean containsUrl(List<ReceiverInfo> list, String url) {
@@ -476,7 +494,15 @@ public class MainActivity extends Activity {
         receiverListView.removeAllViews();
         String filter = receiverSearch == null ? "" : receiverSearch.getText().toString().toLowerCase(Locale.US).trim();
         int shown = 0;
+
+        ReceiverInfo home = homeReceiver();
+        receiverListView.addView(receiverRow(home));
+        shown++;
+
         for (final ReceiverInfo receiver : receivers) {
+            if (isHomeReceiver(receiver)) {
+                continue;
+            }
             if (!matchesFilter(receiver, filter)) {
                 continue;
             }
@@ -488,7 +514,7 @@ public class MainActivity extends Activity {
             }
         }
 
-        if (shown == 0) {
+        if (shown == 1 && filter.length() > 0) {
             receiverListView.addView(messageView("No matching OpenWebRX receivers."));
         }
     }
@@ -499,6 +525,22 @@ public class MainActivity extends Activity {
         }
         String haystack = (receiver.name + " " + receiver.subtitle() + " " + receiver.url).toLowerCase(Locale.US);
         return haystack.contains(filter);
+    }
+
+    private ReceiverInfo homeReceiver() {
+        return new ReceiverInfo(
+                DEFAULT_RECEIVER_NAME,
+                DEFAULT_RECEIVER_URL,
+                "JN95wg",
+                "RS",
+                "Novi Sad",
+                45.267,
+                19.833
+        );
+    }
+
+    private boolean isHomeReceiver(ReceiverInfo receiver) {
+        return receiver != null && DEFAULT_RECEIVER_URL.equalsIgnoreCase(receiver.url);
     }
 
     private View receiverRow(final ReceiverInfo receiver) {
@@ -559,6 +601,7 @@ public class MainActivity extends Activity {
         saveReceiver(receiver);
         brandText.setText("SignalDeck  |  " + receiver.name);
         frequencyText.setText("Loading");
+        emptyStatusTicks = 0;
         if (utcText != null) {
             utcText.setText("");
         }
@@ -744,8 +787,7 @@ public class MainActivity extends Activity {
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function normText(el){return ((ownText(el)||el.textContent||'')+'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hideBlockFromHeader(header){header.style.display='none';header.setAttribute('data-signaldeck-hidden','true');var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('modes')>=0||t.indexOf('controls')>=0||t.indexOf('settings')>=0||t.indexOf('display')>=0){break;}node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;}}"
-                + "function keepOnlySqNrFromControls(header){var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('settings')>=0||t.indexOf('display')>=0||t.indexOf('modes')>=0){break;}var keep=(/(^|\\s)sq(\\s|$)/i.test(t)||/(^|\\s)nr(\\s|$)/i.test(t));if(!keep){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');}node=node.nextElementSibling;}}"
-                + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var t=normText(nodes[i]);var own=(ownText(nodes[i])||'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();var isHeader=nodes[i].className&&((' '+nodes[i].className+' ').toLowerCase().indexOf('openwebrx-section-divider')>=0);if(isHeader||own==='settings'||own==='display'||own==='controls'){if(t.indexOf('settings')>=0||t.indexOf('display')>=0){hideBlockFromHeader(nodes[i]);}else if(t.indexOf('controls')>=0){keepOnlySqNrFromControls(nodes[i]);}}}var rows=panel.querySelectorAll('.openwebrx-panel-line');for(var j=0;j<rows.length;j++){var rt=normText(rows[j]);if(rt.indexOf('1khz')>=0||rt.indexOf('volume')>=0||rt.indexOf('audio')>=0){if(!/(^|\\s)sq(\\s|$)/i.test(rt)&&!/(^|\\s)nr(\\s|$)/i.test(rt)){rows[j].style.display='none';rows[j].setAttribute('data-signaldeck-hidden','true');}}}}"
+                + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var t=normText(nodes[i]);var own=(ownText(nodes[i])||'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();var isHeader=nodes[i].className&&((' '+nodes[i].className+' ').toLowerCase().indexOf('openwebrx-section-divider')>=0);if(isHeader||own==='settings'||own==='display'||own==='controls'){if(t.indexOf('settings')>=0||t.indexOf('display')>=0||t.indexOf('controls')>=0){hideBlockFromHeader(nodes[i]);}}}var rows=panel.querySelectorAll('.openwebrx-panel-line');for(var j=0;j<rows.length;j++){var rt=normText(rows[j]);if(rt.indexOf('sq')>=0||rt.indexOf('nr')>=0||rt.indexOf('volume')>=0||rt.indexOf('audio')>=0||rt.indexOf('1khz')>=0){rows[j].style.display='none';rows[j].setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "hideForeignPanels();hideReceiverSections();hideNativeImageExpander();"
                 + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"
@@ -835,16 +877,32 @@ public class MainActivity extends Activity {
         String meter = extractJsonValue(value, "meter");
         String clock = extractJsonValue(value, "clock");
         String step = extractJsonValue(value, "step");
+        String cleanedFrequency = cleanFrequency(freq);
+        boolean hasReceiverData = cleanedFrequency.length() > 0
+                && !"0 Hz".equals(cleanedFrequency)
+                && !("0 d".equals(meter) || "0 dB".equals(meter));
 
-        if (freq.length() > 0) {
-            frequencyText.setText(cleanFrequency(freq));
+        if (hasReceiverData) {
+            emptyStatusTicks = 0;
+        } else {
+            emptyStatusTicks++;
+        }
+
+        if (hasReceiverData) {
+            frequencyText.setText(cleanedFrequency);
+        } else if (emptyStatusTicks >= 6) {
+            frequencyText.setText("No data");
+        } else if (freq.length() > 0) {
+            frequencyText.setText(cleanedFrequency);
         }
         if (tuningKnob != null) {
             tuningKnob.setStepLabel(step);
         }
 
         StringBuilder status = new StringBuilder();
-        if (step.length() > 0) {
+        if (!hasReceiverData && emptyStatusTicks >= 6) {
+            status.append("No receiver data");
+        } else if (step.length() > 0) {
             status.append(step);
         }
         if (meter.length() > 0) {
