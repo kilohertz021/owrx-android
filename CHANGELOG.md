@@ -13,6 +13,10 @@
 - Current tuning step displayed directly inside the tuning knob
 - Cleaner control layout with adjacent zoom controls
 - Frequency text cleanup for mixed OpenWebRX unit labels
+- Top native overlay removed so OpenWebRX menus and bookmark labels stay visible
+- Receiver deck can be minimized and restored from a compact bottom bar
+- Deck controls reduced to tuning knob and zoom controls
+- HTTP OpenWebRX receivers enabled via Android cleartext traffic setting
 - Native Android overlay above the OpenWebRX+ WebView
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload

@@ -15,6 +15,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.webkit.WebChromeClient;
@@ -43,8 +44,8 @@ public class MainActivity extends Activity {
     private WebView webView;
     private TextView brandText;
     private TextView frequencyText;
-    private TextView statusText;
     private LinearLayout controlPanel;
+    private LinearLayout collapsedPanel;
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
     private EditText receiverSearch;
@@ -53,7 +54,8 @@ public class MainActivity extends Activity {
     private ReceiverInfo currentReceiver;
     private final List<ReceiverInfo> receivers = new ArrayList<ReceiverInfo>();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
-    private boolean controlsVisible = true;
+    private boolean deckExpanded = true;
+    private float deckTouchStartY;
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -127,10 +129,12 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
 
-        root.addView(createTopOverlay(), topOverlayParams());
-
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
+
+        collapsedPanel = createCollapsedPanel();
+        collapsedPanel.setVisibility(View.GONE);
+        root.addView(collapsedPanel, collapsedPanelParams());
 
         receiverDrawer = createReceiverDrawer();
         receiverDrawer.setVisibility(View.GONE);
@@ -138,12 +142,11 @@ public class MainActivity extends Activity {
         return root;
     }
 
-    private LinearLayout createTopOverlay() {
+    private LinearLayout createDeckHeader() {
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
         bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(10), dp(6), dp(10), dp(6));
-        bar.setBackground(panelBackground(0xD9081116, 0, 0x5531D27C));
+        bar.setPadding(dp(6), 0, dp(6), dp(8));
 
         LinearLayout textStack = new LinearLayout(this);
         textStack.setOrientation(LinearLayout.VERTICAL);
@@ -166,31 +169,23 @@ public class MainActivity extends Activity {
 
         bar.addView(textStack, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
 
-        statusText = new TextView(this);
-        statusText.setText("OpenWebRX compatible");
-        statusText.setTextColor(0xFFB7E4CE);
-        statusText.setTextSize(11);
-        statusText.setGravity(Gravity.END);
-        statusText.setSingleLine(true);
-        bar.addView(statusText, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 0.7f));
-
-        Button list = createButton("SDRs");
+        Button list = createButton("Receivers");
         list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 toggleReceiverDrawer();
             }
         });
-        bar.addView(list, new LinearLayout.LayoutParams(dp(64), dp(38)));
+        bar.addView(list, new LinearLayout.LayoutParams(dp(96), dp(38)));
 
-        Button toggle = createButton("Deck");
+        Button toggle = createButton("Min");
         toggle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                toggleControls();
+                setDeckExpanded(false);
             }
         });
-        bar.addView(toggle, new LinearLayout.LayoutParams(dp(64), dp(38)));
+        bar.addView(toggle, new LinearLayout.LayoutParams(dp(58), dp(38)));
         return bar;
     }
 
@@ -199,16 +194,28 @@ public class MainActivity extends Activity {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(dp(10), dp(10), dp(10), dp(10));
         panel.setBackground(panelBackground(0xEA081116, dp(14), 0x6631D27C));
+        panel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    deckTouchStartY = event.getRawY();
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    if (event.getRawY() - deckTouchStartY > dp(36)) {
+                        setDeckExpanded(false);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        panel.addView(createDeckHeader());
 
         LinearLayout deck = new LinearLayout(this);
         deck.setGravity(Gravity.CENTER);
         deck.setOrientation(LinearLayout.HORIZONTAL);
-
-        deck.addView(sideColumn(
-                control("Step", stepScript(1)),
-                control("Mute", "if (window.UI && typeof UI.toggleMute==='function') UI.toggleMute();"),
-                control("Auto", "if (window.Waterfall && typeof Waterfall.setAutoRange==='function') Waterfall.setAutoRange();")
-        ), new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
         tuningKnob = new TuningKnobView(this);
         tuningKnob.setListener(new TuningKnobView.Listener() {
@@ -222,28 +229,77 @@ public class MainActivity extends Activity {
                 cycleTuningStep();
             }
         });
-        LinearLayout.LayoutParams knobParams = new LinearLayout.LayoutParams(dp(168), dp(168));
+        LinearLayout.LayoutParams knobParams = new LinearLayout.LayoutParams(0, dp(164), 1);
         knobParams.setMargins(dp(8), 0, dp(8), 0);
         deck.addView(tuningKnob, knobParams);
 
         deck.addView(sideColumn(
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
-                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
-                control("Reload", "location.reload();")
-        ), new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
+        ), new LinearLayout.LayoutParams(dp(118), LinearLayout.LayoutParams.WRAP_CONTENT));
 
         panel.addView(deck);
 
         return panel;
     }
 
-    private LinearLayout sideColumn(Button first, Button second, Button third) {
+    private LinearLayout createCollapsedPanel() {
+        LinearLayout panel = new LinearLayout(this);
+        panel.setOrientation(LinearLayout.HORIZONTAL);
+        panel.setGravity(Gravity.CENTER_VERTICAL);
+        panel.setPadding(dp(10), dp(8), dp(10), dp(8));
+        panel.setBackground(panelBackground(0xEA081116, dp(14), 0x6631D27C));
+        panel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    deckTouchStartY = event.getRawY();
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    if (deckTouchStartY - event.getRawY() > dp(24)) {
+                        setDeckExpanded(true);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        TextView title = new TextView(this);
+        title.setText("SignalDeck");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(14);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setSingleLine(true);
+        panel.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+        Button receivers = createButton("Receivers");
+        receivers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleReceiverDrawer();
+            }
+        });
+        panel.addView(receivers, new LinearLayout.LayoutParams(dp(98), dp(40)));
+
+        Button deck = createButton("Deck");
+        deck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDeckExpanded(true);
+            }
+        });
+        panel.addView(deck, new LinearLayout.LayoutParams(dp(72), dp(40)));
+        return panel;
+    }
+
+    private LinearLayout sideColumn(Button first, Button second) {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);
         column.addView(first, columnButtonParams());
         column.addView(second, columnButtonParams());
-        column.addView(third, columnButtonParams());
         return column;
     }
 
@@ -334,7 +390,7 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         );
-        params.setMargins(dp(10), dp(70), dp(10), dp(12));
+        params.setMargins(dp(10), dp(10), dp(10), dp(12));
         overlay.addView(sheet, params);
         return overlay;
     }
@@ -362,7 +418,7 @@ public class MainActivity extends Activity {
                     }
                 }
                 renderReceivers();
-                statusText.setText(receivers.size() + " receivers");
+                updateDeckMeta(receivers.size() + " receivers");
             }
 
             @Override
@@ -370,7 +426,7 @@ public class MainActivity extends Activity {
                 receivers.clear();
                 receivers.addAll(fallback);
                 renderReceivers();
-                statusText.setText("Catalog fallback");
+                updateDeckMeta("Catalog fallback");
             }
         });
     }
@@ -475,7 +531,6 @@ public class MainActivity extends Activity {
         saveReceiver(receiver);
         brandText.setText("SignalDeck  |  " + receiver.name);
         frequencyText.setText("Loading");
-        statusText.setText(receiver.subtitle());
         receiverDrawer.setVisibility(View.GONE);
         webView.loadUrl(receiver.url);
     }
@@ -531,9 +586,10 @@ public class MainActivity extends Activity {
         return button;
     }
 
-    private void toggleControls() {
-        controlsVisible = !controlsVisible;
-        controlPanel.setVisibility(controlsVisible ? View.VISIBLE : View.GONE);
+    private void setDeckExpanded(boolean expanded) {
+        deckExpanded = expanded;
+        controlPanel.setVisibility(deckExpanded ? View.VISIBLE : View.GONE);
+        collapsedPanel.setVisibility(deckExpanded ? View.GONE : View.VISIBLE);
     }
 
     private void tune(int direction) {
@@ -630,7 +686,7 @@ public class MainActivity extends Activity {
             status.append(clock);
         }
         if (status.length() > 0) {
-            statusText.setText(status.toString());
+            brandText.setText("SignalDeck  |  " + currentReceiver.name + "  |  " + status);
         }
     }
 
@@ -663,15 +719,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnButtonParams() {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(42)
+                dp(56)
         );
-        params.setMargins(dp(3), dp(3), dp(3), dp(3));
-        return params;
-    }
-
-    private LinearLayout.LayoutParams smallButtonParams() {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, dp(40), 1);
-        params.setMargins(dp(4), dp(8), dp(4), 0);
+        params.setMargins(dp(3), dp(6), dp(3), dp(6));
         return params;
     }
 
@@ -704,16 +754,17 @@ public class MainActivity extends Activity {
         return value.length() > 16 ? value.substring(0, 16).trim() : value;
     }
 
-    private FrameLayout.LayoutParams topOverlayParams() {
+    private FrameLayout.LayoutParams bottomPanelParams() {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                dp(58)
+                FrameLayout.LayoutParams.WRAP_CONTENT
         );
-        params.gravity = Gravity.TOP;
+        params.gravity = Gravity.BOTTOM;
+        params.setMargins(dp(8), 0, dp(8), dp(8));
         return params;
     }
 
-    private FrameLayout.LayoutParams bottomPanelParams() {
+    private FrameLayout.LayoutParams collapsedPanelParams() {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.WRAP_CONTENT
@@ -740,6 +791,12 @@ public class MainActivity extends Activity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private void updateDeckMeta(String value) {
+        if (brandText != null) {
+            brandText.setText("SignalDeck  |  " + currentReceiver.name + "  |  " + value);
+        }
     }
 
     @Override
