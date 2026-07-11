@@ -18,6 +18,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowInsets;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -55,6 +56,7 @@ public class MainActivity extends Activity {
     private TextView brandText;
     private TextView utcText;
     private TextView frequencyText;
+    private FrameLayout rootLayout;
     private LinearLayout controlPanel;
     private LinearLayout collapsedPanel;
     private FrameLayout receiverDrawer;
@@ -68,6 +70,8 @@ public class MainActivity extends Activity {
     private boolean deckExpanded = true;
     private float deckTouchStartY;
     private int emptyStatusTicks;
+    private int safeTopInset;
+    private int safeBottomInset;
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -142,6 +146,7 @@ public class MainActivity extends Activity {
 
     private View createLayout() {
         FrameLayout root = new FrameLayout(this);
+        rootLayout = root;
         root.setBackgroundColor(Color.BLACK);
         root.addView(webView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -158,7 +163,52 @@ public class MainActivity extends Activity {
         receiverDrawer = createReceiverDrawer();
         receiverDrawer.setVisibility(View.GONE);
         root.addView(receiverDrawer, drawerParams());
+        installSafeAreaHandling(root);
         return root;
+    }
+
+    private void installSafeAreaHandling(FrameLayout root) {
+        safeTopInset = dp(14);
+        safeBottomInset = dp(10);
+        applySafeInsets();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
+            root.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                @Override
+                public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                    int top = Math.max(dp(14), insets.getSystemWindowInsetTop());
+                    int bottom = Math.max(dp(10), insets.getSystemWindowInsetBottom());
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && insets.getDisplayCutout() != null) {
+                        top = Math.max(top, insets.getDisplayCutout().getSafeInsetTop() + dp(8));
+                        bottom = Math.max(bottom, insets.getDisplayCutout().getSafeInsetBottom() + dp(8));
+                    }
+                    safeTopInset = top;
+                    safeBottomInset = bottom;
+                    applySafeInsets();
+                    return insets;
+                }
+            });
+            root.requestApplyInsets();
+        }
+    }
+
+    private void applySafeInsets() {
+        if (webView != null) {
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+            );
+            params.setMargins(0, safeTopInset, 0, 0);
+            webView.setLayoutParams(params);
+        }
+        if (controlPanel != null) {
+            controlPanel.setLayoutParams(bottomPanelParams());
+        }
+        if (collapsedPanel != null) {
+            collapsedPanel.setLayoutParams(collapsedPanelParams());
+        }
+        if (receiverDrawer != null) {
+            receiverDrawer.setLayoutParams(drawerParams());
+        }
     }
 
     private LinearLayout createDeckHeader() {
@@ -991,7 +1041,7 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM;
-        params.setMargins(0, 0, 0, 0);
+        params.setMargins(0, 0, 0, Math.max(dp(8), safeBottomInset));
         return params;
     }
 
@@ -1001,15 +1051,17 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM;
-        params.setMargins(0, 0, 0, 0);
+        params.setMargins(0, 0, 0, Math.max(dp(8), safeBottomInset));
         return params;
     }
 
     private FrameLayout.LayoutParams drawerParams() {
-        return new FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         );
+        params.setMargins(0, safeTopInset, 0, safeBottomInset);
+        return params;
     }
 
     private GradientDrawable panelBackground(int color, int radius, int strokeColor) {
