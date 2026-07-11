@@ -4,7 +4,8 @@
 
 ### Added
 
-- Native OpenWebRX station-header expander is disabled in the SignalDeck skin
+- Waterfall-safe Receiver handle behavior that no longer manipulates the native header drawer area
+- Native OpenWebRX station-header layout is left unmanaged to preserve the waterfall
 - Receiver Settings and Display cleanup hardened for alternate OpenWebRX section markup
 - Panel, button and WebView skin corners changed to square 90-degree edges
 - Receiver swipe handle moved below the frequency ribbon
