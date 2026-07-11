@@ -46,3 +46,31 @@ Do not commit:
 - `build/`
 - generated APK/AAB files
 - local Codex attachments
+
+## Local APK download server
+
+Current LAN test drop target:
+
+```text
+D:\SignalDeck\apk
+```
+
+on Windows host:
+
+```text
+192.168.1.185
+```
+
+The helper scripts are:
+
+```text
+tools/serve-signaldeck-apk.ps1
+tools/start-signaldeck-apk-server.cmd
+```
+
+Current download URLs:
+
+```text
+http://192.168.1.185:8099/
+http://192.168.1.185:8099/SignalDeck-latest.apk
+```
