@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -140,8 +141,6 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
 
-        root.addView(createNativeArrowBlocker(), nativeArrowBlockerParams());
-
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
 
@@ -179,14 +178,6 @@ public class MainActivity extends Activity {
         utcText.setSingleLine(true);
         textStack.addView(utcText);
 
-        frequencyText = new TextView(this);
-        frequencyText.setText("Connecting");
-        frequencyText.setTextColor(Color.WHITE);
-        frequencyText.setTextSize(21);
-        frequencyText.setTypeface(Typeface.DEFAULT_BOLD);
-        frequencyText.setSingleLine(true);
-        textStack.addView(frequencyText);
-
         bar.addView(textStack, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -197,7 +188,7 @@ public class MainActivity extends Activity {
     private LinearLayout createControlPanel() {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(10), dp(10), dp(10), dp(10));
+        panel.setPadding(dp(10), dp(8), dp(10), dp(8));
         panel.setBackground(panelBackground(COLOR_PANEL, dp(8), COLOR_BORDER));
         panel.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -218,9 +209,22 @@ public class MainActivity extends Activity {
 
         panel.addView(createDeckHeader());
 
-        LinearLayout deck = new LinearLayout(this);
-        deck.setGravity(Gravity.TOP | Gravity.CENTER_HORIZONTAL);
-        deck.setOrientation(LinearLayout.HORIZONTAL);
+        RelativeLayout deck = new RelativeLayout(this);
+
+        frequencyText = new TextView(this);
+        frequencyText.setText("Connecting");
+        frequencyText.setTextColor(Color.WHITE);
+        frequencyText.setTextSize(21);
+        frequencyText.setTypeface(Typeface.DEFAULT_BOLD);
+        frequencyText.setSingleLine(true);
+        frequencyText.setGravity(Gravity.CENTER);
+        RelativeLayout.LayoutParams frequencyParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                dp(34)
+        );
+        frequencyParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        frequencyParams.setMargins(dp(114), 0, dp(114), 0);
+        deck.addView(frequencyText, frequencyParams);
 
         tuningKnob = new TuningKnobView(this);
         tuningKnob.setListener(new TuningKnobView.Listener() {
@@ -234,18 +238,28 @@ public class MainActivity extends Activity {
                 cycleTuningStep();
             }
         });
-        LinearLayout.LayoutParams knobParams = new LinearLayout.LayoutParams(0, dp(164), 1);
-        knobParams.setMargins(dp(8), 0, dp(8), 0);
+        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(166), dp(166));
+        knobParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+        knobParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+        knobParams.setMargins(0, dp(18), 0, 0);
         deck.addView(tuningKnob, knobParams);
 
-        deck.addView(sideColumn(
+        LinearLayout buttons = sideColumn(
                 receiverPanelButton(),
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
-        ), new LinearLayout.LayoutParams(dp(108), LinearLayout.LayoutParams.WRAP_CONTENT));
+        );
+        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(102), RelativeLayout.LayoutParams.WRAP_CONTENT);
+        buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+        buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        buttonParams.setMargins(0, 0, dp(2), 0);
+        deck.addView(buttons, buttonParams);
 
-        panel.addView(deck);
+        panel.addView(deck, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(170)
+        ));
 
         return panel;
     }
@@ -309,19 +323,6 @@ public class MainActivity extends Activity {
             column.addView(button, columnButtonParams());
         }
         return column;
-    }
-
-    private View createNativeArrowBlocker() {
-        View blocker = new View(this);
-        blocker.setBackgroundColor(0xFF07121B);
-        blocker.setClickable(true);
-        blocker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hideNativeOpenWebRxPanels();
-            }
-        });
-        return blocker;
     }
 
     private FrameLayout createReceiverDrawer() {
@@ -625,9 +626,9 @@ public class MainActivity extends Activity {
         button.setText(label);
         button.setAllCaps(false);
         button.setTextColor(Color.WHITE);
-        button.setTextSize(12);
+        button.setTextSize(11);
         button.setGravity(Gravity.CENTER);
-        button.setPadding(dp(3), 0, dp(3), 0);
+        button.setPadding(dp(2), 0, dp(2), 0);
         button.setBackground(panelBackground(COLOR_BUTTON, dp(6), COLOR_BORDER));
         return button;
     }
@@ -659,16 +660,6 @@ public class MainActivity extends Activity {
         );
     }
 
-    private void hideNativeOpenWebRxPanels() {
-        runReceiverScript(
-                "var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');"
-                        + "for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';}}"
-                        + "var nodes=document.body?document.body.querySelectorAll('*'):[];"
-                        + "for(var j=0;j<nodes.length;j++){var text=(nodes[j].textContent||'').replace(/\\s+/g,' ').trim().toLowerCase();"
-                        + "if(text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0){nodes[j].style.display='none';}}"
-        );
-    }
-
     private String stepScript(int direction) {
         String indexChange = direction < 0
                 ? "Math.max(0,s.selectedIndex-1)"
@@ -676,11 +667,6 @@ public class MainActivity extends Activity {
         return "var s=document.getElementById('openwebrx-tuning-step-listbox');"
                 + "if(s&&s.options.length){s.selectedIndex=" + indexChange + ";"
                 + "s.dispatchEvent(new Event('change'));}";
-    }
-
-    private String panelScript(String panelId) {
-        return "var b=document.querySelector('[data-toggle-panel=\"" + panelId + "\"]');"
-                + "if(b){b.click();}";
     }
 
     private void runReceiverScript(String script) {
@@ -739,7 +725,7 @@ public class MainActivity extends Activity {
                 + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var text=(ownText(nodes[i])||nodes[i].textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(text.indexOf('settings')>=0||text.indexOf('display')>=0){var section=nodes[i].closest('.openwebrx-section,.openwebrx-panel-section,.openwebrx-panel-line,fieldset,details')||nodes[i];section.style.display='none';section.setAttribute('data-signaldeck-hidden','true');var node=section.nextElementSibling;while(node){var nextText=(ownText(node)||node.textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(nextText.indexOf('controls')>=0||nextText.indexOf('modes')>=0){break;}if(nextText.indexOf('settings')>=0||nextText.indexOf('display')>=0||node.getAttribute('data-signaldeck-hidden')==='true'){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;continue;}break;}}}}"
-                + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<82&&r.width>=22&&r.width<=124&&r.height>=12&&r.height<=62&&r.top>76&&r.top<window.innerHeight*.48&&text.length===0){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>70&&r.top<window.innerHeight*.48){el.style.display='none';el.setAttribute('data-signaldeck-hidden','true');}}}"
+                + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "hideForeignPanels();hideReceiverSections();hideNativeImageExpander();"
                 + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
@@ -885,9 +871,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnButtonParams() {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(30)
+                dp(27)
         );
-        params.setMargins(dp(3), dp(2), dp(3), dp(2));
+        params.setMargins(dp(2), dp(2), dp(2), dp(2));
         return params;
     }
 
@@ -937,13 +923,6 @@ public class MainActivity extends Activity {
         );
         params.gravity = Gravity.BOTTOM;
         params.setMargins(0, 0, 0, 0);
-        return params;
-    }
-
-    private FrameLayout.LayoutParams nativeArrowBlockerParams() {
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(96), dp(34));
-        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        params.setMargins(0, dp(30), 0, 0);
         return params;
     }
 

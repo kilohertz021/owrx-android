@@ -5,8 +5,9 @@
 ### Added
 
 - Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
-- Native blocker added over the OpenWebRX image expander arrow
-- OpenWebRX image expander blocker moved upward and given a dark cover color
+- Deck layout now centers the live frequency and encoder with compact right-side actions
+- Visible native blocker over the OpenWebRX image expander was removed
+- OpenWebRX image expander and opened image/author drawer are hidden by the WebView skin
 - Deck action buttons made thinner and aligned higher beside the encoder
 - Native OpenWebRX Log and other non-Receiver panels are hidden in SignalDeck skin
 - Deck and Receiver panels now extend to the screen edges
