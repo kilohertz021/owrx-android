@@ -112,6 +112,7 @@ These controls currently call compatible receiver browser functions through Java
 
 More details:
 
+- `USER_MANUAL.md`
 - `docs/build.md`
 - `docs/install.md`
 - `docs/background-playback.md`
