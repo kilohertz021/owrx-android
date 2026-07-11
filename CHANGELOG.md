@@ -19,6 +19,10 @@
 - HTTP OpenWebRX receivers enabled via Android cleartext traffic setting
 - SignalDeck WebView skin for OpenWebRX top controls and receiver panel
 - Swipe-right gesture to close the OpenWebRX receiver panel
+- OpenWebRX top action buttons hidden in SignalDeck skin
+- Station header kept as the only top bar element
+- Swipe down from the station header opens Receiver panel
+- Swipe up on Receiver panel closes it
 - Native Android overlay above the OpenWebRX+ WebView
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload
