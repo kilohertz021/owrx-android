@@ -10,6 +10,8 @@
 - `kilohertz_sdr` stays pinned at the top of the SDR list even while searching
 - Deck status now reports `No data` for receivers that load but do not expose usable OpenWebRX state
 - Native safe-area insets keep the frequency ribbon below camera cutouts and lift the deck above rounded/nav edges
+- Bandplan/skimmer/info OpenWebRX panels are no longer hidden by the SignalDeck skin
+- Receiver panel height increased and fixed so its trimmed controls fit without small vertical scrolling
 - Deck spacing increased so the live frequency no longer sits under the tuning knob
 - WebView receiver switching now resets page state and allows mixed OpenWebRX content
 - Deck layout now centers the live frequency and encoder with compact right-side actions
