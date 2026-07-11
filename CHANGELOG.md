@@ -4,6 +4,9 @@
 
 ### Added
 
+- Native OpenWebRX station-header expander is disabled in the SignalDeck skin
+- Receiver Settings and Display cleanup hardened for alternate OpenWebRX section markup
+- Panel, button and WebView skin corners changed to square 90-degree edges
 - Receiver swipe handle moved below the frequency ribbon
 - Receiver panel now opens from the handle and closes with an upward swipe
 - Receiver panel hides Settings and Display sections for a cleaner app-first flow
