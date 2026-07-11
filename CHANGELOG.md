@@ -4,6 +4,11 @@
 
 ### Added
 
+- Receiver swipe handle moved below the frequency ribbon
+- Receiver panel now opens from the handle and closes with an upward swipe
+- Receiver panel hides Settings and Display sections for a cleaner app-first flow
+- Expanded deck no longer shows the redundant Min button
+- SignalDeck dark ice-blue palette and tighter corner radii across native controls
 - SignalDeck app naming and independent receiver-console positioning
 - Live OpenWebRX receiver catalog loader from `rx-tx.info`
 - Searchable receiver drawer with fallback receiver list

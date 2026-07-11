@@ -79,16 +79,16 @@ public class TuningKnobView extends View {
         float radius = Math.min(width, height) * 0.44f;
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xEE101820);
+        paint.setColor(0xEE07121B);
         canvas.drawCircle(cx, cy, radius, paint);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(dp(3));
-        paint.setColor(0xFF2D5360);
+        paint.setColor(0xFF31566B);
         canvas.drawCircle(cx, cy, radius, paint);
 
         paint.setStrokeWidth(dp(7));
-        paint.setColor(0xFF31D27C);
+        paint.setColor(0xFF9FEAFF);
         arc.set(cx - radius + dp(12), cy - radius + dp(12), cx + radius - dp(12), cy + radius - dp(12));
         canvas.drawArc(arc, 215, 110, false, paint);
 
@@ -118,12 +118,12 @@ public class TuningKnobView extends View {
         }
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xFF0A1217);
+        paint.setColor(0xFF081520);
         canvas.drawCircle(cx, cy, radius * 0.46f, paint);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(dp(2));
-        paint.setColor(0xAA31D27C);
+        paint.setColor(0xAA9FEAFF);
         canvas.drawCircle(cx, cy, radius * 0.46f, paint);
 
         paint.setStyle(Paint.Style.FILL);
@@ -131,7 +131,7 @@ public class TuningKnobView extends View {
         paint.setColor(0xFFFFFFFF);
         paint.setTextSize(dp(14));
         canvas.drawText("TUNE", cx, cy - dp(9), paint);
-        paint.setColor(0xFFB7E4CE);
+        paint.setColor(0xFFBDEFFF);
         paint.setTextSize(dp(12));
         canvas.drawText(stepLabel, cx, cy + dp(10), paint);
         paint.setTextSize(dp(9));
