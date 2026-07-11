@@ -90,7 +90,7 @@ public class MainActivity extends Activity {
         setContentView(createLayout());
 
         if (savedInstanceState == null) {
-            webView.loadUrl(currentReceiver.url);
+            loadReceiverUrl(currentReceiver.url);
         } else {
             webView.restoreState(savedInstanceState);
         }
@@ -112,11 +112,17 @@ public class MainActivity extends Activity {
         settings.setUseWideViewPort(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
 
         view.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                if ("about:blank".equals(url)) {
+                    return;
+                }
                 injectSignalDeckSkin();
                 startStatusPolling();
             }
@@ -238,7 +244,7 @@ public class MainActivity extends Activity {
                 cycleTuningStep();
             }
         });
-        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(166), dp(166));
+        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(158), dp(158));
         knobParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         knobParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         knobParams.setMargins(0, dp(18), 0, 0);
@@ -258,7 +264,7 @@ public class MainActivity extends Activity {
 
         panel.addView(deck, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(170)
+                dp(198)
         ));
 
         return panel;
@@ -557,7 +563,19 @@ public class MainActivity extends Activity {
             utcText.setText("");
         }
         receiverDrawer.setVisibility(View.GONE);
-        webView.loadUrl(receiver.url);
+        loadReceiverUrl(receiver.url);
+    }
+
+    private void loadReceiverUrl(final String url) {
+        uiHandler.removeCallbacks(statusPoller);
+        webView.stopLoading();
+        webView.loadUrl("about:blank");
+        webView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                webView.loadUrl(url);
+            }
+        }, 180);
     }
 
     private ReceiverInfo loadSavedReceiver() {
@@ -724,7 +742,10 @@ public class MainActivity extends Activity {
                 + "function hideReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.style.display='none';return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
                 + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){if(panels[i].id!=='openwebrx-panel-receiver'){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
-                + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var text=(ownText(nodes[i])||nodes[i].textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(text.indexOf('settings')>=0||text.indexOf('display')>=0){var section=nodes[i].closest('.openwebrx-section,.openwebrx-panel-section,.openwebrx-panel-line,fieldset,details')||nodes[i];section.style.display='none';section.setAttribute('data-signaldeck-hidden','true');var node=section.nextElementSibling;while(node){var nextText=(ownText(node)||node.textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(nextText.indexOf('controls')>=0||nextText.indexOf('modes')>=0){break;}if(nextText.indexOf('settings')>=0||nextText.indexOf('display')>=0||node.getAttribute('data-signaldeck-hidden')==='true'){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;continue;}break;}}}}"
+                + "function normText(el){return ((ownText(el)||el.textContent||'')+'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();}"
+                + "function hideBlockFromHeader(header){header.style.display='none';header.setAttribute('data-signaldeck-hidden','true');var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('modes')>=0||t.indexOf('controls')>=0||t.indexOf('settings')>=0||t.indexOf('display')>=0){break;}node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;}}"
+                + "function keepOnlySqNrFromControls(header){var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('settings')>=0||t.indexOf('display')>=0||t.indexOf('modes')>=0){break;}var keep=(/(^|\\s)sq(\\s|$)/i.test(t)||/(^|\\s)nr(\\s|$)/i.test(t));if(!keep){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');}node=node.nextElementSibling;}}"
+                + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var t=normText(nodes[i]);var own=(ownText(nodes[i])||'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();var isHeader=nodes[i].className&&((' '+nodes[i].className+' ').toLowerCase().indexOf('openwebrx-section-divider')>=0);if(isHeader||own==='settings'||own==='display'||own==='controls'){if(t.indexOf('settings')>=0||t.indexOf('display')>=0){hideBlockFromHeader(nodes[i]);}else if(t.indexOf('controls')>=0){keepOnlySqNrFromControls(nodes[i]);}}}var rows=panel.querySelectorAll('.openwebrx-panel-line');for(var j=0;j<rows.length;j++){var rt=normText(rows[j]);if(rt.indexOf('1khz')>=0||rt.indexOf('volume')>=0||rt.indexOf('audio')>=0){if(!/(^|\\s)sq(\\s|$)/i.test(rt)&&!/(^|\\s)nr(\\s|$)/i.test(rt)){rows[j].style.display='none';rows[j].setAttribute('data-signaldeck-hidden','true');}}}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "hideForeignPanels();hideReceiverSections();hideNativeImageExpander();"
                 + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"

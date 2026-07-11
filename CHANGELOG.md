@@ -5,6 +5,9 @@
 ### Added
 
 - Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
+- Receiver controls now keep only SQ and NR rows; volume/audio row is hidden
+- Deck spacing increased so the live frequency no longer sits under the tuning knob
+- WebView receiver switching now resets page state and allows mixed OpenWebRX content
 - Deck layout now centers the live frequency and encoder with compact right-side actions
 - Visible native blocker over the OpenWebRX image expander was removed
 - OpenWebRX image expander and opened image/author drawer are hidden by the WebView skin
