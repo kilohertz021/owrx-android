@@ -106,6 +106,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                injectSignalDeckSkin();
                 startStatusPolling();
             }
         });
@@ -619,6 +620,55 @@ public class MainActivity extends Activity {
             return;
         }
         webView.evaluateJavascript("(function(){" + script + "})()", null);
+    }
+
+    private void injectSignalDeckSkin() {
+        if (webView == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            return;
+        }
+
+        webView.evaluateJavascript(signalDeckSkinScript(), null);
+    }
+
+    private String signalDeckSkinScript() {
+        return "(function(){"
+                + "if(window.__signalDeckSkinInstalled){return;}"
+                + "window.__signalDeckSkinInstalled=true;"
+                + "document.documentElement.classList.add('signaldeck-skin');"
+                + "var css='"
+                + ".signaldeck-skin body{background:#061014!important;}"
+                + ".signaldeck-skin .webrx-top-container{background:linear-gradient(180deg,rgba(5,16,21,.94),rgba(5,16,21,.72))!important;box-shadow:0 8px 24px rgba(0,0,0,.28)!important;}"
+                + ".signaldeck-skin .webrx-top-bar{min-height:58px!important;padding:6px 8px!important;align-items:center!important;gap:6px!important;}"
+                + ".signaldeck-skin .webrx-top-logo{opacity:.32!important;width:42px!important;height:42px!important;filter:grayscale(1)!important;}"
+                + ".signaldeck-skin .webrx-rx-avatar{width:38px!important;height:38px!important;border-radius:10px!important;opacity:.78!important;}"
+                + ".signaldeck-skin .webrx-rx-texts{min-width:0!important;max-width:34vw!important;}"
+                + ".signaldeck-skin .webrx-rx-title{font-size:13px!important;line-height:15px!important;margin:0!important;color:#d8fff0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}"
+                + ".signaldeck-skin .webrx-rx-desc{font-size:10px!important;line-height:12px!important;color:#80a8a8!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}"
+                + ".signaldeck-skin .openwebrx-main-buttons{display:flex!important;align-items:center!important;gap:5px!important;margin-left:auto!important;}"
+                + ".signaldeck-skin .openwebrx-main-buttons .button{width:52px!important;height:48px!important;box-sizing:border-box!important;margin:0!important;padding:5px 3px!important;border-radius:12px!important;background:rgba(12,45,54,.82)!important;border:1px solid rgba(49,210,124,.38)!important;color:#eafff7!important;font:600 9px/11px sans-serif!important;text-align:center!important;box-shadow:0 6px 18px rgba(0,0,0,.22)!important;text-decoration:none!important;}"
+                + ".signaldeck-skin .openwebrx-main-buttons .button svg{display:none!important;}"
+                + ".signaldeck-skin .openwebrx-main-buttons .button br{display:none!important;}"
+                + ".signaldeck-skin .openwebrx-main-buttons .button:before{content:attr(data-sd-icon);display:block;width:23px;height:23px;margin:0 auto 3px;border-radius:8px;background:rgba(49,210,124,.15);border:1px solid rgba(49,210,124,.45);color:#fff;font:800 11px/23px sans-serif;}"
+                + ".signaldeck-skin .openwebrx-main-buttons .button[data-sd-role=receiver]{background:rgba(49,210,124,.18)!important;border-color:rgba(49,210,124,.75)!important;}"
+                + ".signaldeck-skin #pstt{display:none!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver{border-radius:18px!important;background:rgba(4,35,43,.94)!important;border:1px solid rgba(49,210,124,.5)!important;box-shadow:0 18px 42px rgba(0,0,0,.45)!important;padding:12px!important;backdrop-filter:blur(8px)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';display:block;margin:0 0 8px;color:#dfffee;font:700 13px/18px sans-serif;letter-spacing:.4px;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:10px!important;background:#071820!important;color:#f2fffb!important;border:1px solid rgba(49,210,124,.25)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:11px!important;background:rgba(12,49,60,.9)!important;border:1px solid rgba(49,210,124,.36)!important;color:#fff!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-section-divider{border-radius:10px!important;background:rgba(3,18,24,.7)!important;color:#bfffe5!important;padding:6px 8px!important;margin-top:8px!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-modes .openwebrx-button{min-height:34px!important;font-weight:700!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-hint{transform:translateX(18px)!important;transition:transform .12s ease-out!important;}"
+                + "';"
+                + "var style=document.createElement('style');style.id='signaldeck-skin-style';style.textContent=css;document.head.appendChild(style);"
+                + "var labels=[['Help','?','help'],['Status','S','status'],['Log','LOG','log'],['Receiver','RX','receiver'],['Map','MAP','map'],['Files','FILE','files'],['Settings','SET','settings']];"
+                + "var buttons=[].slice.call(document.querySelectorAll('.openwebrx-main-buttons .button'));"
+                + "buttons.forEach(function(button){var text=(button.textContent||'').replace(/\\s+/g,' ').trim();labels.forEach(function(item){if(text.indexOf(item[0])>=0){button.setAttribute('data-sd-icon',item[1]);button.setAttribute('data-sd-role',item[2]);}});if(!button.getAttribute('data-sd-icon')){button.setAttribute('data-sd-icon','SD');}});"
+                + "var receiver=document.getElementById('openwebrx-panel-receiver');"
+                + "if(receiver){var sx=0,sy=0;receiver.addEventListener('touchstart',function(e){if(!e.touches||!e.touches.length){return;}sx=e.touches[0].clientX;sy=e.touches[0].clientY;receiver.classList.remove('sd-swipe-hint');},{passive:true});"
+                + "receiver.addEventListener('touchmove',function(e){if(!e.touches||!e.touches.length){return;}var dx=e.touches[0].clientX-sx;var dy=Math.abs(e.touches[0].clientY-sy);if(dx>28&&dy<48){receiver.classList.add('sd-swipe-hint');}else{receiver.classList.remove('sd-swipe-hint');}},{passive:true});"
+                + "receiver.addEventListener('touchend',function(e){var touch=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!touch){return;}var dx=touch.clientX-sx;var dy=Math.abs(touch.clientY-sy);receiver.classList.remove('sd-swipe-hint');if(dx>78&&dy<58){var toggle=document.querySelector('[data-toggle-panel=\"openwebrx-panel-receiver\"]');if(toggle){toggle.click();}else{receiver.style.display='none';}}},{passive:true});}"
+                + "})();";
     }
 
     private void startStatusPolling() {
