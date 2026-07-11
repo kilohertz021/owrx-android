@@ -2,8 +2,12 @@ package org.kilohertz.owrxplus;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.RadialGradient;
 import android.graphics.RectF;
+import android.graphics.Shader;
+import android.graphics.SweepGradient;
 import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -79,18 +83,80 @@ public class TuningKnobView extends View {
         float radius = Math.min(width, height) * 0.44f;
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xEE07121B);
-        canvas.drawCircle(cx, cy, radius, paint);
+        paint.setShader(new RadialGradient(
+                cx,
+                cy,
+                radius * 1.18f,
+                new int[]{0xFF232832, 0xFF0C1118, 0xFF05070A},
+                new float[]{0f, 0.72f, 1f},
+                Shader.TileMode.CLAMP
+        ));
+        canvas.drawCircle(cx, cy, radius + dp(5), paint);
+        paint.setShader(null);
 
         paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(dp(3));
-        paint.setColor(0xFF31566B);
-        canvas.drawCircle(cx, cy, radius, paint);
+        paint.setStrokeWidth(dp(2));
+        paint.setColor(0xFF3E4953);
+        for (int i = 0; i < 96; i++) {
+            double angle = Math.toRadians(i * 3.75);
+            float outer = radius + dp(5);
+            float inner = radius - (i % 2 == 0 ? dp(7) : dp(4));
+            canvas.drawLine(
+                    cx + (float) Math.cos(angle) * inner,
+                    cy + (float) Math.sin(angle) * inner,
+                    cx + (float) Math.cos(angle) * outer,
+                    cy + (float) Math.sin(angle) * outer,
+                    paint
+            );
+        }
 
-        paint.setStrokeWidth(dp(7));
-        paint.setColor(0xFF9FEAFF);
-        arc.set(cx - radius + dp(12), cy - radius + dp(12), cx + radius - dp(12), cy + radius - dp(12));
-        canvas.drawArc(arc, 215, 110, false, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new SweepGradient(
+                cx,
+                cy,
+                new int[]{
+                        0xFF0B0D10,
+                        0xFF565D63,
+                        0xFF15181D,
+                        0xFF8A9094,
+                        0xFF101318,
+                        0xFF30363D,
+                        0xFF0B0D10
+                },
+                new float[]{0f, .14f, .31f, .48f, .64f, .82f, 1f}
+        ));
+        canvas.drawCircle(cx, cy, radius - dp(7), paint);
+        paint.setShader(null);
+
+        paint.setShader(new RadialGradient(
+                cx - radius * .22f,
+                cy - radius * .28f,
+                radius * .95f,
+                new int[]{0x99FFFFFF, 0x332B3238, 0x002B3238},
+                new float[]{0f, .38f, 1f},
+                Shader.TileMode.CLAMP
+        ));
+        canvas.drawCircle(cx, cy, radius - dp(8), paint);
+        paint.setShader(null);
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(dp(1));
+        paint.setColor(0x333D444B);
+        for (int i = 0; i < 72; i++) {
+            double angle = Math.toRadians(i * 5);
+            canvas.drawLine(
+                    cx,
+                    cy,
+                    cx + (float) Math.cos(angle) * (radius - dp(11)),
+                    cy + (float) Math.sin(angle) * (radius - dp(11)),
+                    paint
+            );
+        }
+
+        paint.setStrokeWidth(dp(8));
+        paint.setColor(0xFFBDEFFF);
+        arc.set(cx - radius + dp(13), cy - radius + dp(13), cx + radius - dp(13), cy + radius - dp(13));
+        canvas.drawArc(arc, 218, 104, false, paint);
 
         double indicatorRadians = Math.toRadians(indicatorAngle);
         paint.setStyle(Paint.Style.FILL);
@@ -103,7 +169,7 @@ public class TuningKnobView extends View {
         );
 
         paint.setStrokeWidth(dp(2));
-        paint.setColor(0x99FFFFFF);
+        paint.setColor(0xB6D6E8EF);
         for (int i = -5; i <= 5; i++) {
             double angle = Math.toRadians(-90 + i * 18);
             float outer = radius - dp(4);
@@ -118,13 +184,34 @@ public class TuningKnobView extends View {
         }
 
         paint.setStyle(Paint.Style.FILL);
-        paint.setColor(0xFF081520);
-        canvas.drawCircle(cx, cy, radius * 0.46f, paint);
+        paint.setShader(new RadialGradient(
+                cx - dp(5),
+                cy - dp(6),
+                radius * .36f,
+                new int[]{0xFF444C54, 0xFF11161C, 0xFF030405},
+                new float[]{0f, .62f, 1f},
+                Shader.TileMode.CLAMP
+        ));
+        canvas.drawCircle(cx, cy, radius * 0.42f, paint);
+        paint.setShader(null);
 
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(dp(2));
-        paint.setColor(0xAA9FEAFF);
-        canvas.drawCircle(cx, cy, radius * 0.46f, paint);
+        paint.setColor(0xCC9FEAFF);
+        canvas.drawCircle(cx, cy, radius * 0.42f, paint);
+
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(
+                cx - dp(18),
+                cy - dp(18),
+                cx + dp(18),
+                cy + dp(18),
+                0xFF111418,
+                0xFF050608,
+                Shader.TileMode.CLAMP
+        ));
+        canvas.drawCircle(cx, cy, radius * 0.18f, paint);
+        paint.setShader(null);
 
         paint.setStyle(Paint.Style.FILL);
         paint.setTextAlign(Paint.Align.CENTER);

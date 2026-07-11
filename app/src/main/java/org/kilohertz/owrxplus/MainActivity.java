@@ -56,7 +56,6 @@ public class MainActivity extends Activity {
     private TextView frequencyText;
     private LinearLayout controlPanel;
     private LinearLayout collapsedPanel;
-    private Button receiverHandle;
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
     private EditText receiverSearch;
@@ -67,7 +66,6 @@ public class MainActivity extends Activity {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean deckExpanded = true;
     private float deckTouchStartY;
-    private float receiverTouchStartY;
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -141,9 +139,6 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
-
-        receiverHandle = createReceiverHandle();
-        root.addView(receiverHandle, receiverHandleParams());
 
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
@@ -242,6 +237,7 @@ public class MainActivity extends Activity {
         deck.addView(tuningKnob, knobParams);
 
         deck.addView(sideColumn(
+                receiverPanelButton(),
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
@@ -311,29 +307,6 @@ public class MainActivity extends Activity {
             column.addView(button, columnButtonParams());
         }
         return column;
-    }
-
-    private Button createReceiverHandle() {
-        Button button = createButton("Receiver");
-        button.setTextSize(10);
-        button.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-                    receiverTouchStartY = event.getRawY();
-                    return true;
-                }
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    if (event.getRawY() - receiverTouchStartY > dp(12)
-                            || Math.abs(event.getRawY() - receiverTouchStartY) < dp(8)) {
-                        showReceiverPanel();
-                        return true;
-                    }
-                }
-                return false;
-            }
-        });
-        return button;
     }
 
     private FrameLayout createReceiverDrawer() {
@@ -621,6 +594,17 @@ public class MainActivity extends Activity {
         return button;
     }
 
+    private Button receiverPanelButton() {
+        Button button = createButton("Receiver");
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReceiverPanel();
+            }
+        });
+        return button;
+    }
+
     private Button createButton(String label) {
         Button button = new Button(this);
         button.setText(label);
@@ -695,7 +679,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin .webrx-top-container{background:linear-gradient(180deg,rgba(5,13,21,.95),rgba(5,13,21,.48))!important;box-shadow:0 10px 28px rgba(0,0,0,.3)!important;}"
                 + ".signaldeck-skin .webrx-top-bar{min-height:54px!important;padding:6px 10px 12px!important;align-items:center!important;gap:8px!important;}"
                 + ".signaldeck-skin .webrx-top-logo{display:none!important;}"
-                + ".signaldeck-skin .webrx-rx-avatar{width:42px!important;height:42px!important;border-radius:0!important;opacity:.92!important;border:1px solid rgba(159,234,255,.46)!important;box-shadow:0 0 22px rgba(120,214,255,.18),0 8px 18px rgba(0,0,0,.28)!important;}"
+                + ".signaldeck-skin .webrx-rx-avatar{width:42px!important;height:42px!important;border-radius:4px!important;opacity:.92!important;border:1px solid rgba(159,234,255,.46)!important;box-shadow:0 0 22px rgba(120,214,255,.18),0 8px 18px rgba(0,0,0,.28)!important;}"
                 + ".signaldeck-skin .webrx-rx-texts{min-width:0!important;max-width:calc(100vw - 76px)!important;}"
                 + ".signaldeck-skin .webrx-rx-title{font-size:15px!important;line-height:17px!important;margin:0!important;color:#edf8ff!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;letter-spacing:.2px!important;}"
                 + ".signaldeck-skin .webrx-rx-desc{font-size:11px!important;line-height:13px!important;color:#9fb5c3!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}"
@@ -705,12 +689,12 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-receiver-handle:before{content:\\'\\';position:absolute!important;left:50%!important;top:4px!important;margin-left:-8px!important;width:0!important;height:0!important;border-left:8px solid transparent!important;border-right:8px solid transparent!important;border-top:9px solid #d7f6ff!important;filter:drop-shadow(0 0 7px rgba(159,234,255,.78))!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:after{content:\\'RECEIVER\\';position:absolute!important;left:0!important;right:0!important;bottom:1px!important;text-align:center!important;color:rgba(215,246,255,.72)!important;font:700 7px/8px sans-serif!important;letter-spacing:.8px!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle.sd-pull{transform:translateY(9px)!important;transition:transform .1s ease-out!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:8px!important;right:8px!important;top:126px!important;width:auto!important;max-width:none!important;height:34vh!important;max-height:34vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:0!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),0 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:8px!important;right:8px!important;top:126px!important;width:auto!important;max-width:none!important;height:34vh!important;max-height:34vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:4px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),0 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver - swipe up to close\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:0!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:0!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-section-divider{border-radius:0!important;background:rgba(5,13,21,.72)!important;color:#d7f6ff!important;padding:6px 8px!important;margin-top:8px!important;border-color:rgba(159,234,255,.32)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:4px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:4px!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-section-divider{border-radius:3px!important;background:rgba(5,13,21,.72)!important;color:#d7f6ff!important;padding:6px 8px!important;margin-top:8px!important;border-color:rgba(159,234,255,.32)!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-modes .openwebrx-button{min-height:34px!important;font-weight:700!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-hidden=true],.signaldeck-skin #openwebrx-panel-receiver [id*=settings],.signaldeck-skin #openwebrx-panel-receiver [id*=display],.signaldeck-skin #openwebrx-panel-receiver [class*=settings],.signaldeck-skin #openwebrx-panel-receiver [class*=display]{display:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-hint{transform:translateX(18px)!important;transition:transform .12s ease-out!important;}"
@@ -874,9 +858,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnButtonParams() {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(56)
+                dp(40)
         );
-        params.setMargins(dp(3), dp(6), dp(3), dp(6));
+        params.setMargins(dp(3), dp(4), dp(3), dp(4));
         return params;
     }
 
@@ -929,13 +913,6 @@ public class MainActivity extends Activity {
         return params;
     }
 
-    private FrameLayout.LayoutParams receiverHandleParams() {
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(96), dp(32));
-        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        params.setMargins(0, dp(118), 0, 0);
-        return params;
-    }
-
     private FrameLayout.LayoutParams drawerParams() {
         return new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -946,7 +923,7 @@ public class MainActivity extends Activity {
     private GradientDrawable panelBackground(int color, int radius, int strokeColor) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
-        drawable.setCornerRadius(0);
+        drawable.setCornerRadius(dp(4));
         drawable.setStroke(dp(1), strokeColor);
         return drawable;
     }
