@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private TextView brandText;
+    private TextView utcText;
     private TextView frequencyText;
     private LinearLayout controlPanel;
     private LinearLayout collapsedPanel;
@@ -169,6 +170,13 @@ public class MainActivity extends Activity {
         brandText.setSingleLine(true);
         textStack.addView(brandText);
 
+        utcText = new TextView(this);
+        utcText.setText("");
+        utcText.setTextColor(COLOR_TEXT_MUTED);
+        utcText.setTextSize(10);
+        utcText.setSingleLine(true);
+        textStack.addView(utcText);
+
         frequencyText = new TextView(this);
         frequencyText.setText("Connecting");
         frequencyText.setTextColor(Color.WHITE);
@@ -179,14 +187,14 @@ public class MainActivity extends Activity {
 
         bar.addView(textStack, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
 
-        Button list = createButton("Receivers");
+        Button list = createButton("SDRs");
         list.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 toggleReceiverDrawer();
             }
         });
-        bar.addView(list, new LinearLayout.LayoutParams(dp(96), dp(38)));
+        bar.addView(list, new LinearLayout.LayoutParams(dp(82), dp(42)));
         return bar;
     }
 
@@ -275,7 +283,7 @@ public class MainActivity extends Activity {
         title.setSingleLine(true);
         panel.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
 
-        Button receivers = createButton("Receivers");
+        Button receivers = createButton("SDRs");
         receivers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -532,6 +540,9 @@ public class MainActivity extends Activity {
         saveReceiver(receiver);
         brandText.setText("SignalDeck  |  " + receiver.name);
         frequencyText.setText("Loading");
+        if (utcText != null) {
+            utcText.setText("");
+        }
         receiverDrawer.setVisibility(View.GONE);
         webView.loadUrl(receiver.url);
     }
@@ -780,14 +791,13 @@ public class MainActivity extends Activity {
             }
             status.append(meter);
         }
-        if (clock.length() > 0) {
-            if (status.length() > 0) {
-                status.append("  ");
-            }
-            status.append(clock);
-        }
         if (status.length() > 0) {
             brandText.setText("SignalDeck  |  " + currentReceiver.name + "  |  " + status);
+        } else {
+            brandText.setText("SignalDeck  |  " + currentReceiver.name);
+        }
+        if (utcText != null) {
+            utcText.setText(clock.length() > 0 ? clock : "");
         }
     }
 
@@ -897,6 +907,9 @@ public class MainActivity extends Activity {
     private void updateDeckMeta(String value) {
         if (brandText != null) {
             brandText.setText("SignalDeck  |  " + currentReceiver.name + "  |  " + value);
+        }
+        if (utcText != null) {
+            utcText.setText("");
         }
     }
 

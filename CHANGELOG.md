@@ -5,6 +5,7 @@
 ### Added
 
 - Waterfall-safe Receiver handle behavior that no longer manipulates the native header drawer area
+- Deck header UTC moved to its own line and receiver list action renamed back to SDRs
 - Native OpenWebRX station-header layout is left unmanaged to preserve the waterfall
 - Receiver Settings and Display cleanup hardened for alternate OpenWebRX section markup
 - Panel, button and WebView skin corners changed to square 90-degree edges
