@@ -56,6 +56,7 @@ public class MainActivity extends Activity {
     private TextView frequencyText;
     private LinearLayout controlPanel;
     private LinearLayout collapsedPanel;
+    private Button receiverHandle;
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
     private EditText receiverSearch;
@@ -66,6 +67,7 @@ public class MainActivity extends Activity {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean deckExpanded = true;
     private float deckTouchStartY;
+    private float receiverTouchStartY;
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -140,6 +142,9 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
 
+        receiverHandle = createReceiverHandle();
+        root.addView(receiverHandle, receiverHandleParams());
+
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
 
@@ -185,16 +190,10 @@ public class MainActivity extends Activity {
         frequencyText.setSingleLine(true);
         textStack.addView(frequencyText);
 
-        bar.addView(textStack, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.4f));
-
-        Button list = createButton("SDRs");
-        list.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleReceiverDrawer();
-            }
-        });
-        bar.addView(list, new LinearLayout.LayoutParams(dp(82), dp(42)));
+        bar.addView(textStack, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        ));
         return bar;
     }
 
@@ -243,6 +242,7 @@ public class MainActivity extends Activity {
         deck.addView(tuningKnob, knobParams);
 
         deck.addView(sideColumn(
+                receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
         ), new LinearLayout.LayoutParams(dp(118), LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -303,13 +303,37 @@ public class MainActivity extends Activity {
         return panel;
     }
 
-    private LinearLayout sideColumn(Button first, Button second) {
+    private LinearLayout sideColumn(Button... buttons) {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.CENTER);
-        column.addView(first, columnButtonParams());
-        column.addView(second, columnButtonParams());
+        for (Button button : buttons) {
+            column.addView(button, columnButtonParams());
+        }
         return column;
+    }
+
+    private Button createReceiverHandle() {
+        Button button = createButton("Receiver");
+        button.setTextSize(10);
+        button.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    receiverTouchStartY = event.getRawY();
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    if (event.getRawY() - receiverTouchStartY > dp(12)
+                            || Math.abs(event.getRawY() - receiverTouchStartY) < dp(8)) {
+                        showReceiverPanel();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+        return button;
     }
 
     private FrameLayout createReceiverDrawer() {
@@ -586,6 +610,17 @@ public class MainActivity extends Activity {
         return button;
     }
 
+    private Button receiverListButton() {
+        Button button = createButton("SDRs");
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleReceiverDrawer();
+            }
+        });
+        return button;
+    }
+
     private Button createButton(String label) {
         Button button = new Button(this);
         button.setText(label);
@@ -610,6 +645,15 @@ public class MainActivity extends Activity {
 
     private void cycleTuningStep() {
         runReceiverScript(stepScript(1));
+    }
+
+    private void showReceiverPanel() {
+        runReceiverScript(
+                "var panel=document.getElementById('openwebrx-panel-receiver');"
+                        + "if(panel){panel.removeAttribute('hidden');"
+                        + "panel.style.display='block';panel.style.visibility='visible';panel.style.opacity='1';}"
+                        + "else{var b=document.querySelector('[data-toggle-panel=\"openwebrx-panel-receiver\"]');if(b){b.click();}}"
+        );
     }
 
     private String stepScript(int direction) {
@@ -657,7 +701,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin .webrx-rx-desc{font-size:11px!important;line-height:13px!important;color:#9fb5c3!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;}"
                 + ".signaldeck-skin .openwebrx-main-buttons{display:none!important;}"
                 + ".signaldeck-skin #pstt{display:none!important;}"
-                + ".signaldeck-skin #signaldeck-receiver-handle{position:fixed!important;left:50%!important;top:96px!important;width:68px!important;height:22px!important;margin-left:-34px!important;z-index:76!important;border-radius:0!important;background:rgba(7,18,27,.84)!important;border:1px solid rgba(159,234,255,.34)!important;box-shadow:0 0 18px rgba(159,234,255,.2),0 10px 24px rgba(0,0,0,.34)!important;backdrop-filter:blur(5px)!important;touch-action:none!important;}"
+                + ".signaldeck-skin #signaldeck-receiver-handle{display:none!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:before{content:\\'\\';position:absolute!important;left:50%!important;top:4px!important;margin-left:-8px!important;width:0!important;height:0!important;border-left:8px solid transparent!important;border-right:8px solid transparent!important;border-top:9px solid #d7f6ff!important;filter:drop-shadow(0 0 7px rgba(159,234,255,.78))!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:after{content:\\'RECEIVER\\';position:absolute!important;left:0!important;right:0!important;bottom:1px!important;text-align:center!important;color:rgba(215,246,255,.72)!important;font:700 7px/8px sans-serif!important;letter-spacing:.8px!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle.sd-pull{transform:translateY(9px)!important;transition:transform .1s ease-out!important;}"
@@ -680,13 +724,13 @@ public class MainActivity extends Activity {
                 + "function hideReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.style.display='none';return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var text=(ownText(nodes[i])||nodes[i].textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(text.indexOf('settings')>=0||text.indexOf('display')>=0){var section=nodes[i].closest('.openwebrx-section,.openwebrx-panel-section,.openwebrx-panel-line,fieldset,details')||nodes[i];section.style.display='none';section.setAttribute('data-signaldeck-hidden','true');var node=section.nextElementSibling;while(node){var nextText=(ownText(node)||node.textContent||'').replace(/[.:>-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();if(nextText.indexOf('controls')>=0||nextText.indexOf('modes')>=0){break;}if(nextText.indexOf('settings')>=0||nextText.indexOf('display')>=0||node.getAttribute('data-signaldeck-hidden')==='true'){node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;continue;}break;}}}}"
-                + "function ensureReceiverHandle(){var handle=document.getElementById('signaldeck-receiver-handle');if(!handle){handle=document.createElement('div');handle.id='signaldeck-receiver-handle';handle.setAttribute('role','button');handle.setAttribute('aria-label','Open receiver panel');document.body.appendChild(handle);}if(handle.__sdWired){return;}handle.__sdWired=true;var sx=0,sy=0,moved=false;handle.addEventListener('touchstart',function(e){if(!e.touches||!e.touches.length){return;}sx=e.touches[0].clientX;sy=e.touches[0].clientY;moved=false;handle.classList.remove('sd-pull');},{passive:true});handle.addEventListener('touchmove',function(e){if(!e.touches||!e.touches.length){return;}var dx=Math.abs(e.touches[0].clientX-sx);var dy=e.touches[0].clientY-sy;moved=moved||dx>8||Math.abs(dy)>8;handle.classList.toggle('sd-pull',dy>10&&dx<80);},{passive:true});handle.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=Math.abs(t.clientX-sx);var dy=t.clientY-sy;handle.classList.remove('sd-pull');if((dy>34&&dx<90)||!moved){showReceiver();}},{passive:true});handle.addEventListener('click',function(){showReceiver();});}"
-                + "ensureReceiverHandle();hideReceiverSections();"
+                + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<82&&r.width>=22&&r.width<=124&&r.height>=12&&r.height<=62&&r.top>76&&r.top<window.innerHeight*.48&&text.length===0){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>70&&r.top<window.innerHeight*.48){el.style.display='none';el.setAttribute('data-signaldeck-hidden','true');}}}"
+                + "hideReceiverSections();hideNativeImageExpander();"
                 + "var receiver=document.getElementById('openwebrx-panel-receiver');"
                 + "if(receiver){var sx=0,sy=0;receiver.addEventListener('touchstart',function(e){if(!e.touches||!e.touches.length){return;}sx=e.touches[0].clientX;sy=e.touches[0].clientY;receiver.classList.remove('sd-swipe-hint');},{passive:true});"
                 + "receiver.addEventListener('touchmove',function(e){if(!e.touches||!e.touches.length){return;}var dx=e.touches[0].clientX-sx;var dy=e.touches[0].clientY-sy;var ady=Math.abs(dy);receiver.classList.toggle('sd-swipe-hint',dx>28&&ady<48);receiver.classList.toggle('sd-swipe-up-hint',dy<-28&&Math.abs(dx)<80);},{passive:true});"
                 + "receiver.addEventListener('touchend',function(e){var touch=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!touch){return;}var dx=touch.clientX-sx;var dy=touch.clientY-sy;receiver.classList.remove('sd-swipe-hint');receiver.classList.remove('sd-swipe-up-hint');if((dx>78&&Math.abs(dy)<58)||(dy<-72&&Math.abs(dx)<95)){hideReceiver();}},{passive:true});}"
-                + "new MutationObserver(function(){hideReceiverSections();ensureReceiverHandle();}).observe(document.body,{childList:true,subtree:true});"
+                + "new MutationObserver(function(){hideReceiverSections();hideNativeImageExpander();}).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }
 
@@ -882,6 +926,13 @@ public class MainActivity extends Activity {
         );
         params.gravity = Gravity.BOTTOM;
         params.setMargins(dp(8), 0, dp(8), dp(8));
+        return params;
+    }
+
+    private FrameLayout.LayoutParams receiverHandleParams() {
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(96), dp(32));
+        params.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        params.setMargins(0, dp(118), 0, 0);
         return params;
     }
 
