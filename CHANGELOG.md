@@ -23,6 +23,7 @@
 - Station header kept as the only top bar element
 - Swipe down from the station header opens Receiver panel
 - Swipe up on Receiver panel closes it
+- Receiver panel repositioned as a top drawer over the waterfall area
 - Native Android overlay above the OpenWebRX+ WebView
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload
