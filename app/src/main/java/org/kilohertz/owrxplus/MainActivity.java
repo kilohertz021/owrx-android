@@ -35,6 +35,7 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -341,7 +342,7 @@ public class MainActivity extends Activity {
                 dp(34)
         );
         frequencyParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        frequencyParams.setMargins(dp(114), 0, dp(114), 0);
+        frequencyParams.setMargins(dp(136), 0, dp(136), 0);
         deck.addView(frequencyText, frequencyParams);
 
         tuningKnob = new TuningKnobView(this);
@@ -367,10 +368,10 @@ public class MainActivity extends Activity {
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
-                control("SQ", clickControlScript("SQ")),
-                control("NR", clickControlScript("NR"))
+                mobileRangeControl("SQ"),
+                mobileRangeControl("NR")
         );
-        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(102), RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(128), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
         buttonParams.setMargins(0, 0, dp(2), 0);
@@ -435,12 +436,12 @@ public class MainActivity extends Activity {
         return panel;
     }
 
-    private LinearLayout sideColumn(Button... buttons) {
+    private LinearLayout sideColumn(View... controls) {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
         column.setGravity(Gravity.TOP);
-        for (Button button : buttons) {
-            column.addView(button, columnButtonParams());
+        for (View control : controls) {
+            column.addView(control, columnControlParams(control instanceof Button));
         }
         return column;
     }
@@ -796,6 +797,50 @@ public class MainActivity extends Activity {
         return button;
     }
 
+    private LinearLayout mobileRangeControl(final String label) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(5), 0, dp(3), 0);
+        row.setBackground(panelBackground(COLOR_BUTTON, dp(6), COLOR_BORDER));
+
+        TextView title = new TextView(this);
+        title.setText(label);
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(11);
+        title.setTypeface(Typeface.DEFAULT_BOLD);
+        title.setGravity(Gravity.CENTER);
+        row.addView(title, new LinearLayout.LayoutParams(dp(24), LinearLayout.LayoutParams.MATCH_PARENT));
+
+        SeekBar seekBar = new SeekBar(this);
+        seekBar.setMax(100);
+        seekBar.setProgress(50);
+        seekBar.setPadding(0, 0, 0, 0);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    setReceiverRange(label, progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                setReceiverRange(label, seekBar.getProgress());
+            }
+        });
+        row.addView(seekBar, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+        return row;
+    }
+
+    private void setReceiverRange(String label, int percent) {
+        runReceiverScript(rangeControlScript(label, percent));
+    }
+
     private String clickControlScript(String label) {
         return "var wanted='" + label.toLowerCase(Locale.US) + "';"
                 + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
@@ -803,6 +848,23 @@ public class MainActivity extends Activity {
                 + "var clicked=false;"
                 + "for(var i=0;i<nodes.length;i++){var t=own(nodes[i]);if(t===wanted){nodes[i].click();clicked=true;break;}}"
                 + "console.log('SignalDeck control '+wanted+' clicked='+clicked);";
+    }
+
+    private String rangeControlScript(String label, int percent) {
+        String wanted = label.toLowerCase(Locale.US);
+        int safePercent = Math.max(0, Math.min(100, percent));
+        return "var wanted='" + wanted + "';var pct=" + safePercent + ";"
+                + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
+                + "function norm(el){return ((own(el)||el.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();}"
+                + "function hasToken(text){return text.split(/\\s+/).indexOf(wanted)>=0;}"
+                + "function ranges(root){return root?root.querySelectorAll('input[type=range],input[type=number],input:not([type]),[role=slider]'):[];}"
+                + "var panel=document.getElementById('openwebrx-panel-receiver')||document;"
+                + "var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
+                + "var target=null;var base=null;"
+                + "for(var i=0;i<nodes.length&&!target;i++){var t=own(nodes[i]);if(!t){t=norm(nodes[i]);}if(hasToken(t)){base=nodes[i].closest('.openwebrx-panel-line')||nodes[i].parentElement||nodes[i];var rs=ranges(base);if(rs.length){target=rs[0];break;}var n=base.nextElementSibling;var guard=0;while(n&&guard++<4&&!target){var nt=norm(n);if(nt.indexOf('modes')>=0||nt.indexOf('settings')>=0||nt.indexOf('display')>=0){break;}rs=ranges(n);if(rs.length){target=rs[0];break;}n=n.nextElementSibling;}}}"
+                + "if(target&&target.tagName&&target.tagName.toLowerCase()==='input'){var min=parseFloat(target.min);var max=parseFloat(target.max);if(isNaN(min)){min=0;}if(isNaN(max)||max===min){max=100;}var value=min+(max-min)*pct/100;target.value=value;target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' pct='+pct+' value='+value+' min='+min+' max='+max);}"
+                + "else if(target){target.setAttribute('aria-valuenow',pct);target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' aria pct='+pct);}"
+                + "else{console.log('SignalDeck range '+wanted+' target not found');}";
     }
 
     private Button receiverListButton() {
@@ -1142,10 +1204,10 @@ public class MainActivity extends Activity {
         return json.substring(start, end).replace("\\\"", "\"").trim();
     }
 
-    private LinearLayout.LayoutParams columnButtonParams() {
+    private LinearLayout.LayoutParams columnControlParams(boolean button) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(27)
+                button ? dp(27) : dp(32)
         );
         params.setMargins(dp(2), dp(2), dp(2), dp(2));
         return params;
