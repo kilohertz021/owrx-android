@@ -5,6 +5,7 @@
 ### Added
 
 - Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
+- Receiver switching now recreates the WebView so broken remote SDR pages cannot leave stale white/blank layers behind
 - Receiver controls now keep only SQ and NR rows; volume/audio row is hidden
 - Receiver Controls section is now hidden completely in the app skin
 - `kilohertz_sdr` stays pinned at the top of the SDR list even while searching

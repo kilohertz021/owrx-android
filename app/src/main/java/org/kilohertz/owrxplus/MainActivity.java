@@ -88,9 +88,7 @@ public class MainActivity extends Activity {
         receiverCatalog = new ReceiverCatalog();
         currentReceiver = loadSavedReceiver();
 
-        webView = new WebView(this);
-        webView.setBackgroundColor(Color.BLACK);
-        configureWebView(webView);
+        webView = createConfiguredWebView();
 
         setContentView(createLayout());
 
@@ -104,6 +102,13 @@ public class MainActivity extends Activity {
         startKeepAliveService();
         seedFallbackReceivers();
         refreshReceivers();
+    }
+
+    private WebView createConfiguredWebView() {
+        WebView view = new WebView(this);
+        view.setBackgroundColor(Color.BLACK);
+        configureWebView(view);
+        return view;
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -661,14 +666,33 @@ public class MainActivity extends Activity {
 
     private void loadReceiverUrl(final String url) {
         uiHandler.removeCallbacks(statusPoller);
-        webView.stopLoading();
-        webView.loadUrl("about:blank");
-        webView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                webView.loadUrl(url);
+        final WebView oldWebView = webView;
+        WebView freshWebView = createConfiguredWebView();
+        webView = freshWebView;
+
+        if (rootLayout != null) {
+            if (oldWebView != null) {
+                rootLayout.removeView(oldWebView);
             }
-        }, 180);
+            rootLayout.addView(freshWebView, 0, new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+            ));
+            applySafeInsets();
+        }
+
+        if (oldWebView != null) {
+            oldWebView.stopLoading();
+            oldWebView.loadUrl("about:blank");
+            uiHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    oldWebView.destroy();
+                }
+            }, 250);
+        }
+
+        freshWebView.loadUrl(url);
     }
 
     private ReceiverInfo loadSavedReceiver() {
