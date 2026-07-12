@@ -330,6 +330,25 @@ public class MainActivity extends Activity {
 
         RelativeLayout deck = new RelativeLayout(this);
 
+        LinearLayout buttons = sideColumn(
+                receiverPanelButton(),
+                receiverListButton(),
+                control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
+                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
+                mobileRangeControl("SQ"),
+                mobileRangeControl("NR")
+        );
+        buttons.setId(View.generateViewId());
+
+        RelativeLayout leftArea = new RelativeLayout(this);
+        RelativeLayout.LayoutParams leftParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.MATCH_PARENT
+        );
+        leftParams.addRule(RelativeLayout.LEFT_OF, buttons.getId());
+        leftParams.setMargins(0, 0, dp(8), 0);
+        deck.addView(leftArea, leftParams);
+
         frequencyText = new TextView(this);
         frequencyText.setText("Connecting");
         frequencyText.setTextColor(Color.WHITE);
@@ -342,8 +361,8 @@ public class MainActivity extends Activity {
                 dp(34)
         );
         frequencyParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        frequencyParams.setMargins(dp(136), 0, dp(136), 0);
-        deck.addView(frequencyText, frequencyParams);
+        frequencyParams.setMargins(dp(6), 0, dp(6), 0);
+        leftArea.addView(frequencyText, frequencyParams);
 
         tuningKnob = new TuningKnobView(this);
         tuningKnob.setListener(new TuningKnobView.Listener() {
@@ -357,24 +376,16 @@ public class MainActivity extends Activity {
                 cycleTuningStep();
             }
         });
-        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(158), dp(158));
+        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(152), dp(152));
         knobParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         knobParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         knobParams.setMargins(0, dp(18), 0, 0);
-        deck.addView(tuningKnob, knobParams);
+        leftArea.addView(tuningKnob, knobParams);
 
-        LinearLayout buttons = sideColumn(
-                receiverPanelButton(),
-                receiverListButton(),
-                control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
-                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
-                mobileRangeControl("SQ"),
-                mobileRangeControl("NR")
-        );
-        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(128), RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(136), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        buttonParams.setMargins(0, 0, dp(2), 0);
+        buttonParams.setMargins(0, 0, 0, 0);
         deck.addView(buttons, buttonParams);
 
         panel.addView(deck, new LinearLayout.LayoutParams(
