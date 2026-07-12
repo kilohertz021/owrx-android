@@ -858,13 +858,19 @@ public class MainActivity extends Activity {
                 + "function norm(el){return ((own(el)||el.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hasToken(text){return text.split(/\\s+/).indexOf(wanted)>=0;}"
                 + "function ranges(root){return root?root.querySelectorAll('input[type=range],input[type=number],input:not([type]),[role=slider]'):[];}"
-                + "var panel=document.getElementById('openwebrx-panel-receiver')||document;"
-                + "var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
+                + "function setHashParam(key,value){var raw=(location.hash||'').replace(/^#/,'');var parts=raw?raw.split(','):[];var found=false;for(var i=0;i<parts.length;i++){if(parts[i].split('=')[0]===key){parts[i]=key+'='+value;found=true;break;}}if(!found){parts.push(key+'='+value);}location.hash=parts.join(',');}"
+                + "if(wanted==='sq'){var sql=Math.round(-120+(pct*120/100));setHashParam('sql',sql);try{window.dispatchEvent(new HashChangeEvent('hashchange'));}catch(e){window.dispatchEvent(new Event('hashchange'));}console.log('SignalDeck range sq pct='+pct+' sql='+sql);}"
+                + "var roots=[];"
+                + "if(wanted==='nr'){roots.push(document.getElementById('openwebrx-panel-nr'));roots.push(document.querySelector('[id*=\"nr\" i]'));}"
+                + "if(wanted==='sq'){roots.push(document.getElementById('openwebrx-panel-receiver'));roots.push(document.getElementById('openwebrx-panel-volume'));}"
+                + "roots.push(document.getElementById('openwebrx-panel-receiver'));roots.push(document);"
                 + "var target=null;var base=null;"
+                + "for(var r=0;r<roots.length&&!target;r++){var panel=roots[r];if(!panel){continue;}var direct=ranges(panel);if(wanted==='nr'&&panel.id==='openwebrx-panel-nr'&&direct.length){target=direct[0];break;}var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
                 + "for(var i=0;i<nodes.length&&!target;i++){var t=own(nodes[i]);if(!t){t=norm(nodes[i]);}if(hasToken(t)){base=nodes[i].closest('.openwebrx-panel-line')||nodes[i].parentElement||nodes[i];var rs=ranges(base);if(rs.length){target=rs[0];break;}var n=base.nextElementSibling;var guard=0;while(n&&guard++<4&&!target){var nt=norm(n);if(nt.indexOf('modes')>=0||nt.indexOf('settings')>=0||nt.indexOf('display')>=0){break;}rs=ranges(n);if(rs.length){target=rs[0];break;}n=n.nextElementSibling;}}}"
+                + "}"
                 + "if(target&&target.tagName&&target.tagName.toLowerCase()==='input'){var min=parseFloat(target.min);var max=parseFloat(target.max);if(isNaN(min)){min=0;}if(isNaN(max)||max===min){max=100;}var value=min+(max-min)*pct/100;target.value=value;target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' pct='+pct+' value='+value+' min='+min+' max='+max);}"
                 + "else if(target){target.setAttribute('aria-valuenow',pct);target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' aria pct='+pct);}"
-                + "else{console.log('SignalDeck range '+wanted+' target not found');}";
+                + "else if(wanted!=='sq'){console.log('SignalDeck range '+wanted+' target not found');}";
     }
 
     private Button receiverListButton() {
