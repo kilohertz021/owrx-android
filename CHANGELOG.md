@@ -5,6 +5,8 @@
 ### Added
 
 - Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
+- Temporary debug logging added; long-press the deck title to copy recent WebView diagnostics
+- SQ and NR buttons added to the deck under Zoom controls
 - Receiver switching now recreates the WebView so broken remote SDR pages cannot leave stale white/blank layers behind
 - Receiver controls now keep only SQ and NR rows; volume/audio row is hidden
 - Receiver Controls section is now hidden completely in the app skin

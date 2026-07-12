@@ -2,6 +2,8 @@ package org.kilohertz.owrxplus;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -19,7 +21,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -30,6 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +77,10 @@ public class MainActivity extends Activity {
     private boolean deckExpanded = true;
     private float deckTouchStartY;
     private int emptyStatusTicks;
+    private int statusLogTicks;
     private int safeTopInset;
     private int safeBottomInset;
+    private final StringBuilder debugLog = new StringBuilder();
     private final Runnable statusPoller = new Runnable() {
         @Override
         public void run() {
@@ -128,16 +137,56 @@ public class MainActivity extends Activity {
 
         view.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                super.onPageStarted(view, url, favicon);
+                logDebug("page started " + url);
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 if ("about:blank".equals(url)) {
                     return;
                 }
+                logDebug("page finished " + url);
                 injectSignalDeckSkin();
+                logWebViewSnapshot("page-finished");
                 startStatusPolling();
             }
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                super.onReceivedError(view, request, error);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && request != null && error != null) {
+                    logDebug("web error main=" + request.isForMainFrame()
+                            + " code=" + error.getErrorCode()
+                            + " desc=" + error.getDescription()
+                            + " url=" + request.getUrl());
+                }
+            }
+
+            @Override
+            public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                super.onReceivedHttpError(view, request, errorResponse);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null && errorResponse != null) {
+                    logDebug("http error main=" + request.isForMainFrame()
+                            + " status=" + errorResponse.getStatusCode()
+                            + " url=" + request.getUrl());
+                }
+            }
         });
-        view.setWebChromeClient(new WebChromeClient());
+        view.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage consoleMessage) {
+                if (consoleMessage != null) {
+                    logDebug("console " + consoleMessage.messageLevel()
+                            + " " + consoleMessage.sourceId()
+                            + ":" + consoleMessage.lineNumber()
+                            + " " + consoleMessage.message());
+                }
+                return super.onConsoleMessage(consoleMessage);
+            }
+        });
         view.setKeepScreenOn(true);
         view.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -231,6 +280,13 @@ public class MainActivity extends Activity {
         brandText.setTextColor(COLOR_TEXT_ICE);
         brandText.setTextSize(12);
         brandText.setSingleLine(true);
+        brandText.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                copyDebugLogToClipboard();
+                return true;
+            }
+        });
         textStack.addView(brandText);
 
         utcText = new TextView(this);
@@ -310,7 +366,9 @@ public class MainActivity extends Activity {
                 receiverPanelButton(),
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
-                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();")
+                control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
+                control("SQ", clickControlScript("SQ")),
+                control("NR", clickControlScript("NR"))
         );
         RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(102), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -654,9 +712,11 @@ public class MainActivity extends Activity {
     private void selectReceiver(ReceiverInfo receiver) {
         currentReceiver = receiver;
         saveReceiver(receiver);
+        logDebug("select receiver name=" + receiver.name + " url=" + receiver.url);
         brandText.setText("SignalDeck  |  " + receiver.name);
         frequencyText.setText("Loading");
         emptyStatusTicks = 0;
+        statusLogTicks = 0;
         if (utcText != null) {
             utcText.setText("");
         }
@@ -666,6 +726,7 @@ public class MainActivity extends Activity {
 
     private void loadReceiverUrl(final String url) {
         uiHandler.removeCallbacks(statusPoller);
+        logDebug("load receiver url=" + url);
         final WebView oldWebView = webView;
         WebView freshWebView = createConfiguredWebView();
         webView = freshWebView;
@@ -693,6 +754,7 @@ public class MainActivity extends Activity {
         }
 
         freshWebView.loadUrl(url);
+        logWebViewSnapshot("after-loadUrl");
     }
 
     private ReceiverInfo loadSavedReceiver() {
@@ -732,6 +794,15 @@ public class MainActivity extends Activity {
             }
         });
         return button;
+    }
+
+    private String clickControlScript(String label) {
+        return "var wanted='" + label.toLowerCase(Locale.US) + "';"
+                + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
+                + "var nodes=document.querySelectorAll('button,.openwebrx-button,[role=button],label,span,div');"
+                + "var clicked=false;"
+                + "for(var i=0;i<nodes.length;i++){var t=own(nodes[i]);if(t===wanted){nodes[i].click();clicked=true;break;}}"
+                + "console.log('SignalDeck control '+wanted+' clicked='+clicked);";
     }
 
     private Button receiverListButton() {
@@ -809,6 +880,44 @@ public class MainActivity extends Activity {
             return;
         }
         webView.evaluateJavascript("(function(){" + script + "})()", null);
+    }
+
+    private void logDebug(String message) {
+        String line = String.format(Locale.US, "%1$tH:%1$tM:%1$tS %2$s", new java.util.Date(), message);
+        debugLog.append(line).append('\n');
+        if (debugLog.length() > 32000) {
+            debugLog.delete(0, debugLog.length() - 24000);
+        }
+        android.util.Log.d("SignalDeck", line);
+    }
+
+    private void copyDebugLogToClipboard() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        if (clipboard == null) {
+            Toast.makeText(this, "Clipboard unavailable", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String text = debugLog.length() == 0 ? "SignalDeck debug log is empty" : debugLog.toString();
+        clipboard.setPrimaryClip(ClipData.newPlainText("SignalDeck debug log", text));
+        Toast.makeText(this, "SignalDeck debug log copied", Toast.LENGTH_LONG).show();
+    }
+
+    private void logWebViewSnapshot(final String reason) {
+        if (webView == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            return;
+        }
+        webView.evaluateJavascript(
+                "(function(){"
+                        + "function d(el){if(!el){return null;}var r=el.getBoundingClientRect();return {tag:el.tagName,id:el.id||'',cls:(el.className||'')+'',txt:((el.innerText||el.textContent||'')+'').replace(/\\s+/g,' ').trim().slice(0,80),x:Math.round(r.left),y:Math.round(r.top),w:Math.round(r.width),h:Math.round(r.height),bg:getComputedStyle(el).backgroundColor,disp:getComputedStyle(el).display,vis:getComputedStyle(el).visibility};}"
+                        + "var cx=Math.floor(window.innerWidth/2),cy=Math.floor(window.innerHeight/2);"
+                        + "var center=document.elementFromPoint(cx,cy);"
+                        + "var top=document.elementFromPoint(cx,Math.min(window.innerHeight-1,90));"
+                        + "var wf=document.querySelector('canvas,#webrx-waterfall,.webrx-waterfall,.waterfall');"
+                        + "var panels=[];var ps=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<ps.length;i++){var s=getComputedStyle(ps[i]);if(s.display!=='none'&&s.visibility!=='hidden'){panels.push(ps[i].id+':'+Math.round(ps[i].getBoundingClientRect().width)+'x'+Math.round(ps[i].getBoundingClientRect().height));}}"
+                        + "return JSON.stringify({url:location.href,title:document.title,ready:document.readyState,bodyBg:getComputedStyle(document.body).backgroundColor,htmlBg:getComputedStyle(document.documentElement).backgroundColor,viewport:window.innerWidth+'x'+window.innerHeight,center:d(center),top:d(top),waterfall:d(wf),panels:panels});"
+                        + "})()",
+                value -> logDebug("snapshot " + reason + " " + unquoteJsString(value))
+        );
     }
 
     private void injectSignalDeckSkin() {
@@ -951,10 +1060,22 @@ public class MainActivity extends Activity {
         String meter = extractJsonValue(value, "meter");
         String clock = extractJsonValue(value, "clock");
         String step = extractJsonValue(value, "step");
+        statusLogTicks++;
         String cleanedFrequency = cleanFrequency(freq);
         boolean hasReceiverData = cleanedFrequency.length() > 0
                 && !"0 Hz".equals(cleanedFrequency)
                 && !("0 d".equals(meter) || "0 dB".equals(meter));
+
+        if (statusLogTicks % 5 == 0 || !hasReceiverData) {
+            logDebug("status receiver=" + currentReceiver.name
+                    + " freq=" + cleanedFrequency
+                    + " step=" + step
+                    + " meter=" + meter
+                    + " clock=" + clock
+                    + " hasData=" + hasReceiverData
+                    + " emptyTicks=" + emptyStatusTicks);
+            logWebViewSnapshot("status");
+        }
 
         if (hasReceiverData) {
             emptyStatusTicks = 0;
