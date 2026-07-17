@@ -925,7 +925,21 @@ public class MainActivity extends Activity {
     }
 
     private void tune(int direction) {
-        runReceiverScript("if (typeof tuneBySteps==='function') tuneBySteps(" + direction + ");");
+        runReceiverScript(tuneScript(direction));
+    }
+
+    private String tuneScript(int direction) {
+        int safeDirection = direction < 0 ? -1 : 1;
+        return "var dir=" + safeDirection + ";"
+                + "function hashParts(){return (location.hash||'').replace(/^#/,'').split(',').filter(Boolean);}"
+                + "function getHashParam(key){var p=hashParts();for(var i=0;i<p.length;i++){var x=p[i].split('=');if(x[0]===key){return x.slice(1).join('=');}}return null;}"
+                + "function setHashParam(key,value){var p=hashParts();var found=false;for(var i=0;i<p.length;i++){if(p[i].split('=')[0]===key){p[i]=key+'='+value;found=true;break;}}if(!found){p.push(key+'='+value);}location.hash=p.join(',');}"
+                + "function textFreqHz(){var el=document.querySelector('.webrx-actual-freq');var t=((el&&el.textContent)||'').replace(',', '.').trim().toLowerCase();var m=t.match(/([0-9]+(?:\\.[0-9]+)?)\\s*(ghz|mhz|khz|hz)/);if(!m){return NaN;}var n=parseFloat(m[1]);var u=m[2];var mult=u==='ghz'?1000000000:(u==='mhz'?1000000:(u==='khz'?1000:1));return Math.round(n*mult);}"
+                + "var freq=parseInt(getHashParam('freq'),10);if(isNaN(freq)||freq<=0){freq=textFreqHz();}"
+                + "var s=document.getElementById('openwebrx-tuning-step-listbox');var step=s?parseFloat(s.value):NaN;if(isNaN(step)||step<=0){step=1000;}"
+                + "if(!isNaN(freq)&&freq>0){var next=Math.max(0,Math.round(freq+dir*step));setHashParam('freq',next);try{window.dispatchEvent(new HashChangeEvent('hashchange'));}catch(e){window.dispatchEvent(new Event('hashchange'));}console.log('SignalDeck tune hash freq='+next+' step='+step+' dir='+dir);}"
+                + "else if(typeof tuneBySteps==='function'){tuneBySteps(dir);console.log('SignalDeck tune fallback tuneBySteps dir='+dir);}"
+                + "else{console.log('SignalDeck tune failed: no freq and no tuneBySteps');}";
     }
 
     private void cycleTuningStep() {
