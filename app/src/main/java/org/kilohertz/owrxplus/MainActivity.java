@@ -76,6 +76,8 @@ public class MainActivity extends Activity {
     private final List<ReceiverInfo> receivers = new ArrayList<ReceiverInfo>();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean deckExpanded = true;
+    private float globalTouchStartX;
+    private float globalTouchStartY;
     private float deckTouchStartX;
     private float deckTouchStartY;
     private int emptyStatusTicks;
@@ -113,6 +115,29 @@ public class MainActivity extends Activity {
         startKeepAliveService();
         seedFallbackReceivers();
         refreshReceivers();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            globalTouchStartX = event.getRawX();
+            globalTouchStartY = event.getRawY();
+        } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+            float dx = event.getRawX() - globalTouchStartX;
+            float dy = event.getRawY() - globalTouchStartY;
+            int width = getResources().getDisplayMetrics().widthPixels;
+            int height = getResources().getDisplayMetrics().heightPixels;
+            boolean mostlyHorizontal = Math.abs(dx) > dp(70) && Math.abs(dy) < dp(110);
+            if (mostlyHorizontal && deckExpanded && globalTouchStartY > height * 0.55f && dx > 0) {
+                setDeckExpanded(false);
+                return true;
+            }
+            if (mostlyHorizontal && !deckExpanded && globalTouchStartX > width - dp(46) && dx < 0) {
+                setDeckExpanded(true);
+                return true;
+            }
+        }
+        return super.dispatchTouchEvent(event);
     }
 
     private WebView createConfiguredWebView() {
@@ -924,6 +949,11 @@ public class MainActivity extends Activity {
         deckExpanded = expanded;
         controlPanel.setVisibility(deckExpanded ? View.VISIBLE : View.GONE);
         collapsedPanel.setVisibility(deckExpanded ? View.GONE : View.VISIBLE);
+        if (deckExpanded) {
+            controlPanel.bringToFront();
+        } else {
+            collapsedPanel.bringToFront();
+        }
     }
 
     private void tune(int direction) {
@@ -1316,7 +1346,7 @@ public class MainActivity extends Activity {
                 dp(104)
         );
         params.gravity = Gravity.RIGHT | Gravity.BOTTOM;
-        params.setMargins(0, 0, 0, Math.max(dp(138), safeBottomInset + dp(122)));
+        params.setMargins(0, 0, 0, Math.max(dp(260), safeBottomInset + dp(236)));
         return params;
     }
 
