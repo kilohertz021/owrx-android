@@ -1,127 +1,99 @@
-# SignalDeck: простая инструкция
+# SignalDeck User Manual
 
-SignalDeck - Android-приложение для прослушивания и просмотра SDR-приемников OpenWebRX. По умолчанию открывается приемник `kilohertz_sdr`, но можно выбрать и другие приемники из списка.
+SignalDeck is an Android client for OpenWebRX-compatible SDR receivers. It is currently a test APK, not a Google Play release.
 
-## Как скачать
+## Download
 
-Открой на телефоне ссылку:
-
-```text
-http://192.168.1.185:8099/SignalDeck-latest.apk
-```
-
-Скачай APK-файл. Если браузер предупредит, что файл скачан не из Google Play, это нормально для тестовой версии.
-
-## Как установить
-
-1. Открой скачанный файл `SignalDeck-latest.apk`.
-2. Если Android попросит разрешить установку из этого источника, нажми `Настройки`.
-3. Включи разрешение для текущего браузера или файлового менеджера.
-4. Вернись назад и нажми `Установить`.
-5. После установки открой приложение `SignalDeck`.
-
-Если Android пишет, что приложение может быть небезопасным, это стандартное предупреждение для APK, установленного не из Play Market.
-
-## Первый запуск
-
-После запуска приложение открывает основной SDR:
+Use the versioned APK when possible:
 
 ```text
-kilohertz_sdr
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.2-e538aad.apk
 ```
 
-На экране видно водопад, шкалу частот и нижнюю панель управления `SignalDeck`.
-
-## Нижняя панель Deck
-
-На панели показаны:
-
-- текущий приемник;
-- шаг перестройки;
-- уровень сигнала;
-- текущее UTC-время;
-- текущая частота;
-- большая ручка `TUNE`;
-- кнопки `Receiver`, `SDRs`, `Zoom +`, `Zoom -`.
-
-## Ручка TUNE
-
-Крути ручку пальцем, чтобы перестраивать частоту.
-
-Короткий тап по центру ручки меняет шаг перестройки, например `1 Hz`, `1 kHz` и так далее.
-
-## Zoom
-
-`Zoom +` приближает водопад по частоте.
-
-`Zoom -` отдаляет водопад.
-
-## Receiver
-
-Кнопка `Receiver` открывает или закрывает панель режимов приемника.
-
-В этой панели можно выбрать режим, например:
-
-- `FM`
-- `WFM`
-- `AM`
-- `LSB`
-- `USB`
-- `CW`
-- `DATA`
-- `DRM`
-- `DAB`
-- `HDR`
-- `DIG`
-
-Лишние технические секции скрыты, чтобы не мешали.
-
-## SDRs
-
-Кнопка `SDRs` открывает список доступных OpenWebRX-приемников.
-
-В списке можно:
-
-- выбрать другой приемник;
-- искать по названию, стране, городу, локатору или адресу;
-- вернуться на основной `kilohertz_sdr`, он всегда закреплен сверху.
-
-Важно: не все чужие SDR работают стабильно. Некоторые серверы могут быть выключены, перегружены, несовместимы или не отдавать звук/частоту. Если сервер загрузился, но не дает данных, приложение покажет `No data`.
-
-## Метки на шкале
-
-Зеленые и желтые метки над шкалой частот - это подсказки OpenWebRX/bandplan/skimmer. По ним можно понять, что находится в выбранном участке диапазона.
-
-Если открыть skimmer или информационную метку, приложение не должно скрывать это окно.
-
-## Если нет звука
-
-Проверь:
-
-- включена ли громкость телефона;
-- не подключены ли Bluetooth-наушники;
-- работает ли выбранный SDR;
-- попробуй вернуться на `kilohertz_sdr`;
-- попробуй выбрать другой режим в `Receiver`.
-
-## Если экран выглядит обрезанным
-
-Приложение учитывает камеру, вырезы экрана и нижнюю навигационную область Android. Если на конкретном телефоне что-то все равно упирается в край, лучше сделать скриншот и передать разработчику.
-
-## Как удалить
-
-Открой настройки Android:
+The moving latest build is also available:
 
 ```text
-Настройки -> Приложения -> SignalDeck -> Удалить
+https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-## Коротко
+## Install
 
-1. Скачай APK.
-2. Установи.
-3. Открой SignalDeck.
-4. Крути `TUNE`.
-5. `Receiver` - режимы.
-6. `SDRs` - список приемников.
-7. `Zoom + / Zoom -` - масштаб водопада.
+1. Download the APK on your Android phone.
+2. Open the downloaded APK.
+3. If Android asks for permission to install apps from this source, allow it for your browser, Telegram, or file manager.
+4. Tap `Install`.
+5. Open `SignalDeck`.
+
+Android may warn that the app was not installed from Google Play. That is normal for a test APK.
+
+## Main Screen
+
+The app opens `kilohertz_sdr` by default. You will see the OpenWebRX waterfall, band labels, receiver frequency, and the SignalDeck control deck.
+
+## Tuning
+
+- Rotate the `TUNE` knob to change frequency.
+- Tap the center of the knob to change the tuning step.
+- The default tuning step is `1 kHz`.
+
+## Receiver Panel
+
+Use the right-side `Receiver` tab to open the receiver controls.
+
+The receiver panel contains:
+
+- mode buttons such as `FM`, `WFM`, `AM`, `LSB`, `USB`, `CW`, `DATA`, `DRM`, `DAB`, and `HDR`;
+- the `DIG` decoder selector;
+- waterfall level controls when the current OpenWebRX page exposes compatible controls.
+
+Swipe the receiver panel to the right to close it.
+
+## Deck Panel
+
+The SignalDeck deck contains:
+
+- live receiver/frequency information;
+- the `TUNE` knob;
+- `SDRs`;
+- `Zoom +`;
+- `Zoom -`;
+- `SQ`;
+- `NR`.
+
+Swipe the deck to the right to hide it. Use the right-side `Deck` tab to bring it back.
+
+## SDR List
+
+Tap `SDRs` to open the receiver list.
+
+The list is loaded from:
+
+```text
+https://rx-tx.info/map-sdr-points
+```
+
+`kilohertz_sdr` stays pinned at the top. Other public receivers may be offline, overloaded, incompatible, or temporarily broken.
+
+## Decoder Results
+
+OpenWebRX decoder output, such as skimmer, ISM, TPMS, FAX, or SSTV panels, is still rendered by the OpenWebRX page. SignalDeck lightly styles decoder tables when they are present, but it does not create decoded packets itself.
+
+If the waterfall shows signals but the results table is empty, either the selected decoder did not decode anything yet, the selected mode is not appropriate for the signal, or the remote receiver did not expose decoder output in the page.
+
+## Troubleshooting
+
+If there is no audio:
+
+- check phone volume;
+- check Bluetooth routing;
+- try another OpenWebRX mode;
+- return to `kilohertz_sdr`;
+- choose another SDR from `SDRs`.
+
+If the screen is blank or white after switching receivers:
+
+- wait a few seconds;
+- return to `kilohertz_sdr`;
+- restart the app if the remote receiver left WebView in a broken state.
+
+For debug logs, long-press the SignalDeck title in the deck. The recent WebView diagnostics are copied to the clipboard.

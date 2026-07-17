@@ -27,6 +27,13 @@ app/build/outputs/apk/debug/app-debug.apk
 - Check public-positioning wording in `docs/public-positioning.md` before making the repository public.
 - Update `CHANGELOG.md`.
 - Bump `versionCode` and `versionName` in `app/build.gradle` if needed.
+- Publish a versioned APK filename:
+
+```text
+SignalDeck-<version>-<commit>.apk
+```
+
+- Update `SignalDeck-latest.apk` only after the versioned APK is uploaded.
 
 ## GitHub
 
@@ -74,3 +81,13 @@ Current download URLs:
 http://192.168.1.185:8099/
 http://192.168.1.185:8099/SignalDeck-latest.apk
 ```
+
+## Public APK hosting
+
+Current external test APK location:
+
+```text
+https://kilohertz021.org/signaldeck/
+```
+
+Always share the versioned APK when testing a specific build.

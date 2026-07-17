@@ -4,16 +4,34 @@ SignalDeck is an experimental Android app for listening to OpenWebRX-compatible 
 
 It opens `kilohertz_sdr` by default, shows the waterfall and current frequency, and adds a mobile-friendly control deck with a rotary `TUNE` knob, receiver mode selection, zoom controls, and a searchable SDR list.
 
+## Current Test APK
+
+Versioned APK:
+
+```text
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.2-e538aad.apk
+```
+
+Latest APK:
+
+```text
+https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
+```
+
+This is a debug/test build for direct sharing. It is not a Google Play release.
+
 ## Features
 
 - opens OpenWebRX-compatible SDR receivers;
 - shows the receiver waterfall and frequency scale;
 - provides a rotary `TUNE` control for frequency changes;
 - changes tuning step with a center tap on the knob;
-- opens receiver modes through `Receiver`;
+- opens receiver modes through the right-side `Receiver` tab;
+- hides and restores the native control deck through the right-side `Deck` tab;
 - opens the SDR directory through `SDRs`;
 - loads OpenWebRX receiver entries from `rx-tx.info`;
 - keeps `kilohertz_sdr` pinned at the top of the SDR list;
+- provides mobile SQ/NR sliders and waterfall level controls;
 - respects camera cutouts, rounded screen corners, and Android navigation areas.
 
 ## Installation
@@ -65,6 +83,8 @@ app/build/outputs/apk/debug/app-debug.apk
 
 More documentation:
 
+- [PROJECT.md](PROJECT.md)
+- [ROADMAP.md](ROADMAP.md)
 - [USER_MANUAL.md](USER_MANUAL.md)
 - [docs/build.md](docs/build.md)
 - [docs/install.md](docs/install.md)

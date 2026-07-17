@@ -4,6 +4,28 @@
 
 ### Added
 
+- Project documentation added: `PROJECT.md`, `ROADMAP.md`, architecture notes and GitHub templates.
+
+## v0.1.2 - 2026-07-17
+
+### Added
+
+- Deck tab redrawn as a dedicated side handle.
+- Receiver button removed from the deck because the Receiver side tab now owns that action.
+- Decoder tables are lightly styled when OpenWebRX exposes compatible table output.
+- Versioned APK filename publishing introduced.
+
+## v0.1.1 - 2026-07-17
+
+### Added
+
+- Global deck hide/show gestures added.
+- Version code/name bumped for installable APK updates.
+
+## v0.1.0 - 2026-06-10
+
+### Added
+
 - Receiver deck button now toggles the Receiver panel open/closed; swipe control is no longer used
 - Temporary debug logging added; long-press the deck title to copy recent WebView diagnostics
 - SQ and NR buttons added to the deck under Zoom controls
@@ -65,13 +87,6 @@
 - Live frequency/status strip
 - Quick controls for tuning, tuning step, mute, panels, zoom, waterfall auto-range and reload
 - Hide/show behavior for the native control panel
-
-## v0.1.0 - 2026-06-10
-
-Initial private working version.
-
-### Added
-
 - Android WebView shell for `https://sdr.kilohertz021.org/`
 - JavaScript, DOM storage, WebSocket and WebAudio-capable WebView configuration
 - Fullscreen receiver view
