@@ -8,6 +8,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -66,7 +69,7 @@ public class MainActivity extends Activity {
     private TextView frequencyText;
     private FrameLayout rootLayout;
     private LinearLayout controlPanel;
-    private LinearLayout collapsedPanel;
+    private View collapsedPanel;
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
     private EditText receiverSearch;
@@ -360,7 +363,6 @@ public class MainActivity extends Activity {
         RelativeLayout deck = new RelativeLayout(this);
 
         LinearLayout buttons = sideColumn(
-                receiverPanelButton(),
                 receiverListButton(),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
@@ -425,12 +427,8 @@ public class MainActivity extends Activity {
         return panel;
     }
 
-    private LinearLayout createCollapsedPanel() {
-        LinearLayout panel = new LinearLayout(this);
-        panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setGravity(Gravity.CENTER);
-        panel.setPadding(0, dp(8), 0, dp(8));
-        panel.setBackground(panelBackground(COLOR_PANEL, dp(8), COLOR_BORDER));
+    private View createCollapsedPanel() {
+        DeckTabView panel = new DeckTabView(this);
         panel.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -452,26 +450,45 @@ public class MainActivity extends Activity {
                 return false;
             }
         });
-
-        TextView title = new TextView(this);
-        title.setText("<\nD\nE\nC\nK");
-        title.setTextColor(Color.WHITE);
-        title.setTextSize(9);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setSingleLine(false);
-        title.setGravity(Gravity.CENTER);
-        title.setLineSpacing(0, 0.9f);
-        title.setOnClickListener(new View.OnClickListener() {
+        panel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 setDeckExpanded(true);
             }
         });
-        panel.addView(title, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-        ));
         return panel;
+    }
+
+    private class DeckTabView extends View {
+        private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+
+        DeckTabView(Activity context) {
+            super(context);
+            fillPaint.setColor(0xDB07121B);
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setStrokeWidth(dp(1));
+            strokePaint.setColor(0xAA9FEAFF);
+            textPaint.setColor(0xFFD7F6FF);
+            textPaint.setTextAlign(Paint.Align.CENTER);
+            textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+            textPaint.setTextSize(dp(9));
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            rect.set(0.5f, 0.5f, getWidth() + dp(4), getHeight() - 0.5f);
+            canvas.drawRoundRect(rect, dp(4), dp(4), fillPaint);
+            canvas.drawRoundRect(rect, dp(4), dp(4), strokePaint);
+            canvas.save();
+            canvas.rotate(90, getWidth() / 2f, getHeight() / 2f);
+            canvas.drawText("<  DECK", getWidth() / 2f, getHeight() / 2f - (textPaint.ascent() + textPaint.descent()) / 2f, textPaint);
+            canvas.restore();
+        }
     }
 
     private LinearLayout sideColumn(View... controls) {
@@ -1096,6 +1113,10 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-row{display:grid!important;grid-template-columns:38px 1fr 40px!important;align-items:center!important;gap:7px!important;margin-top:4px!important;color:#b8ccd8!important;font:700 10px/18px sans-serif!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls input[type=range]{width:100%!important;height:24px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;accent-color:#9feaff!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-value{text-align:right!important;color:#edf8ff!important;font:700 9px/18px monospace!important;}"
+                + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;background:rgba(5,13,21,.32)!important;border-radius:4px!important;overflow:hidden!important;font:12px/15px sans-serif!important;}"
+                + ".signaldeck-skin table[data-signaldeck-decoder-table=true] th{padding:4px 5px!important;color:#edf8ff!important;background:rgba(7,18,27,.54)!important;font-weight:800!important;}"
+                + ".signaldeck-skin table[data-signaldeck-decoder-table=true] td{padding:3px 5px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{border-radius:4px!important;border:1px solid rgba(159,234,255,.24)!important;box-shadow:0 0 20px rgba(120,214,255,.08)!important;overflow:auto!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-hidden=true],.signaldeck-skin #openwebrx-panel-receiver [id*=settings],.signaldeck-skin #openwebrx-panel-receiver [id*=display],.signaldeck-skin #openwebrx-panel-receiver [class*=settings],.signaldeck-skin #openwebrx-panel-receiver [class*=display]{display:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-hint{transform:translateX(18px)!important;transition:transform .12s ease-out!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-up-hint{transform:translateY(-24px)!important;transition:transform .12s ease-out!important;}"
@@ -1119,11 +1140,12 @@ public class MainActivity extends Activity {
                 + "function hideBlockFromHeader(header){header.style.display='none';header.setAttribute('data-signaldeck-hidden','true');var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('modes')>=0||t.indexOf('controls')>=0||t.indexOf('settings')>=0||t.indexOf('display')>=0){break;}node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;}}"
                 + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var t=normText(nodes[i]);var own=(ownText(nodes[i])||'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();var isHeader=nodes[i].className&&((' '+nodes[i].className+' ').toLowerCase().indexOf('openwebrx-section-divider')>=0);if(isHeader||own==='settings'||own==='display'||own==='controls'){if(t.indexOf('settings')>=0||t.indexOf('display')>=0||t.indexOf('controls')>=0){hideBlockFromHeader(nodes[i]);}}}var rows=panel.querySelectorAll('.openwebrx-panel-line');for(var j=0;j<rows.length;j++){var rt=normText(rows[j]);if(rt.indexOf('sq')>=0||rt.indexOf('nr')>=0||rt.indexOf('volume')>=0||rt.indexOf('audio')>=0||rt.indexOf('1khz')>=0){rows[j].style.display='none';rows[j].setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function hideNativeStatusMeters(){var terms=/\\b(audio buffer|audio output|audio stream|network usage|server cpu|clients)\\b/i;var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.closest&&el.closest('#signaldeck-deck,#signaldeck-receiver-modal,#openwebrx-panel-receiver,.openwebrx-message-panel,.openwebrx-meta-panel,#openwebrx-panel-digimodes')){continue;}var text=((el.textContent||'')+'').replace(/\\s+/g,' ').trim();if(!terms.test(text)){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0||r.top<window.innerHeight*.52||r.height>96||r.width>window.innerWidth*.82){continue;}var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(!pr||pr.width<=0||pr.height<=0){break;}if(pr.top<window.innerHeight*.5||pr.height>110||pr.width>window.innerWidth*.9){break;}box=p;}box.style.display='none';box.style.pointerEvents='none';box.style.visibility='hidden';box.setAttribute('data-signaldeck-native-meter','true');}}"
+                + "function markDecoderTables(){var tables=document.body?document.body.querySelectorAll('table'):[];var marked=0;for(var i=0;i<tables.length;i++){var text=((tables[i].innerText||tables[i].textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();if(!/(freq\\s+text|id\\s+device|pressure_kpa|temperature_c|crc|tpms|packet|callsign|message|device)/.test(text)){continue;}tables[i].setAttribute('data-signaldeck-decoder-table','true');marked++;var wrap=tables[i].parentElement;if(wrap&&wrap.getBoundingClientRect().width>window.innerWidth*.55){wrap.setAttribute('data-signaldeck-decoder-wrap','true');}}if(marked){console.log('SignalDeck decoder tables marked='+marked);}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function installReceiverSwipe(){if(window.__signalDeckReceiverSwipe){return;}window.__signalDeckReceiverSwipe=true;var sx=0,sy=0,fromRight=false,onPanel=false;document.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;fromRight=sx>window.innerWidth-34;onPanel=!!(e.target&&e.target.closest&&e.target.closest('#openwebrx-panel-receiver'));},{passive:true});document.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>90||Math.abs(dx)<70){return;}if(!receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&fromRight&&dx<-72){showReceiver();return;}if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&onPanel&&dx>72){hideReceiver();return;}},{passive:true});}"
                 + "function ensureReceiverTab(){if(document.getElementById('signaldeck-receiver-tab')){return;}var tab=document.createElement('div');tab.id='signaldeck-receiver-tab';tab.textContent='Receiver';tab.addEventListener('click',function(){showReceiver();});document.body.appendChild(tab);}"
-                + "hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);"
-                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();tidyDigRow();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();}).observe(document.body,{childList:true,subtree:true});"
+                + "hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(markDecoderTables,1500);"
+                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();tidyDigRow();markDecoderTables();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();}).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }
 
