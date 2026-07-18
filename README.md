@@ -6,19 +6,19 @@ It opens `kilohertz_sdr` by default, shows the waterfall and current frequency, 
 
 ## Current Test APK
 
-Versioned APK:
-
-```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.3-825221e.apk
-```
-
-Latest APK:
+Latest published APK:
 
 ```text
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-This is a debug/test build for direct sharing. It is not a Google Play release.
+Current source version:
+
+```text
+0.1.3
+```
+
+The `0.1.3` APK is built locally but external publishing is pending until SSH access to the APK host is restored. This is a debug/test build for direct sharing. It is not a Google Play release.
 
 ## Features
 

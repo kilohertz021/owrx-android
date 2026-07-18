@@ -4,17 +4,13 @@ SignalDeck is an Android client for OpenWebRX-compatible SDR receivers. It is cu
 
 ## Download
 
-Use the versioned APK when possible:
-
-```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.3-825221e.apk
-```
-
-The moving latest build is also available:
+Use the latest published APK:
 
 ```text
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
+
+Version `0.1.3` is built locally, but external publishing is pending until SSH access to the APK host is restored.
 
 ## Install
 
