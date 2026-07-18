@@ -128,19 +128,29 @@ public class MainActivity extends Activity {
         } else if (event.getActionMasked() == MotionEvent.ACTION_UP) {
             float dx = event.getRawX() - globalTouchStartX;
             float dy = event.getRawY() - globalTouchStartY;
-            int width = getResources().getDisplayMetrics().widthPixels;
-            int height = getResources().getDisplayMetrics().heightPixels;
             boolean mostlyHorizontal = Math.abs(dx) > dp(70) && Math.abs(dy) < dp(110);
-            if (mostlyHorizontal && deckExpanded && globalTouchStartY > height * 0.55f && dx > 0) {
+            if (mostlyHorizontal && deckExpanded && dx > 0 && touchStartedInside(controlPanel)) {
                 setDeckExpanded(false);
                 return true;
             }
-            if (mostlyHorizontal && !deckExpanded && globalTouchStartX > width - dp(46) && dx < 0) {
+            if (mostlyHorizontal && !deckExpanded && dx < 0 && touchStartedInside(collapsedPanel)) {
                 setDeckExpanded(true);
                 return true;
             }
         }
         return super.dispatchTouchEvent(event);
+    }
+
+    private boolean touchStartedInside(View view) {
+        if (view == null || view.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        int[] location = new int[2];
+        view.getLocationOnScreen(location);
+        return globalTouchStartX >= location[0]
+                && globalTouchStartX <= location[0] + view.getWidth()
+                && globalTouchStartY >= location[1]
+                && globalTouchStartY <= location[1] + view.getHeight();
     }
 
     private WebView createConfiguredWebView() {
@@ -336,7 +346,7 @@ public class MainActivity extends Activity {
     private LinearLayout createControlPanel() {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(10), dp(8), dp(10), dp(8));
+        panel.setPadding(dp(12), dp(8), dp(10), dp(10));
         panel.setBackground(panelBackground(COLOR_PANEL, dp(8), COLOR_BORDER));
         panel.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -377,22 +387,22 @@ public class MainActivity extends Activity {
                 RelativeLayout.LayoutParams.MATCH_PARENT
         );
         leftParams.addRule(RelativeLayout.LEFT_OF, buttons.getId());
-        leftParams.setMargins(0, 0, dp(8), 0);
+        leftParams.setMargins(0, 0, dp(6), 0);
         deck.addView(leftArea, leftParams);
 
         frequencyText = new TextView(this);
         frequencyText.setText("Connecting");
         frequencyText.setTextColor(Color.WHITE);
-        frequencyText.setTextSize(21);
+        frequencyText.setTextSize(23);
         frequencyText.setTypeface(Typeface.DEFAULT_BOLD);
         frequencyText.setSingleLine(true);
         frequencyText.setGravity(Gravity.CENTER);
         RelativeLayout.LayoutParams frequencyParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
-                dp(34)
+                dp(42)
         );
         frequencyParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        frequencyParams.setMargins(dp(6), 0, dp(6), 0);
+        frequencyParams.setMargins(dp(4), dp(12), dp(4), 0);
         leftArea.addView(frequencyText, frequencyParams);
 
         tuningKnob = new TuningKnobView(this);
@@ -407,21 +417,21 @@ public class MainActivity extends Activity {
                 cycleTuningStep();
             }
         });
-        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(152), dp(152));
+        RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(178), dp(178));
         knobParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         knobParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         knobParams.setMargins(0, dp(18), 0, 0);
         leftArea.addView(tuningKnob, knobParams);
 
-        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(136), RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(118), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        buttonParams.setMargins(0, 0, 0, 0);
+        buttonParams.setMargins(0, dp(42), 0, 0);
         deck.addView(buttons, buttonParams);
 
         panel.addView(deck, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(198)
+                dp(222)
         ));
 
         return panel;
@@ -486,7 +496,7 @@ public class MainActivity extends Activity {
             canvas.drawRoundRect(rect, dp(4), dp(4), strokePaint);
             canvas.save();
             canvas.rotate(90, getWidth() / 2f, getHeight() / 2f);
-            canvas.drawText("<  DECK", getWidth() / 2f, getHeight() / 2f - (textPaint.ascent() + textPaint.descent()) / 2f, textPaint);
+            canvas.drawText("DECK", getWidth() / 2f, getHeight() / 2f - (textPaint.ascent() + textPaint.descent()) / 2f, textPaint);
             canvas.restore();
         }
     }
@@ -1095,7 +1105,6 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:auto!important;right:0!important;top:96px!important;width:min(88vw,400px)!important;max-width:88vw!important;height:54vh!important;max-height:54vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:4px 0 0 4px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;border-right:0!important;box-shadow:0 0 30px rgba(120,214,255,.16),-18px 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;transform:translateX(108%)!important;opacity:0!important;pointer-events:none!important;transition:transform .18s ease-out,opacity .18s ease-out!important;}"
                 + ".signaldeck-skin.sd-receiver-open #openwebrx-panel-receiver{transform:translateX(0)!important;opacity:1!important;pointer-events:auto!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-tab{position:fixed!important;right:0!important;top:36vh!important;width:24px!important;height:104px!important;z-index:79!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:4px 0 0 4px!important;border:1px solid rgba(159,234,255,.55)!important;border-right:0!important;background:rgba(7,18,27,.86)!important;color:#d7f6ff!important;box-shadow:0 0 18px rgba(120,214,255,.2),-8px 8px 24px rgba(0,0,0,.32)!important;font:800 9px/10px sans-serif!important;letter-spacing:.8px!important;writing-mode:vertical-rl!important;text-orientation:mixed!important;text-transform:uppercase!important;opacity:.88!important;pointer-events:auto!important;transition:opacity .16s ease-out,transform .16s ease-out!important;}"
-                + ".signaldeck-skin #signaldeck-receiver-tab:before{content:\\'‹\\';font:900 18px/18px sans-serif!important;margin-bottom:6px!important;color:#9feaff!important;}"
                 + ".signaldeck-skin.sd-receiver-open #signaldeck-receiver-tab{opacity:.24!important;transform:translateX(18px)!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
@@ -1317,9 +1326,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnControlParams(boolean button) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                button ? dp(27) : dp(32)
+                button ? dp(25) : dp(29)
         );
-        params.setMargins(dp(2), dp(2), dp(2), dp(2));
+        params.setMargins(dp(2), dp(2), dp(2), dp(3));
         return params;
     }
 
