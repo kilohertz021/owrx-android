@@ -10,7 +10,7 @@ Use the latest published APK:
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-Version `0.1.3` is built locally, but external publishing is pending until SSH access to the APK host is restored.
+Current published test version: `0.1.3`.
 
 ## Install
 

@@ -18,7 +18,7 @@ Current source version:
 0.1.3
 ```
 
-The `0.1.3` APK is built locally but external publishing is pending until SSH access to the APK host is restored. This is a debug/test build for direct sharing. It is not a Google Play release.
+The `0.1.3` APK is published as a debug/test build for direct sharing. It is not a Google Play release.
 
 ## Features
 
