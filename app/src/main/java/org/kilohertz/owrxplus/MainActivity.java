@@ -346,8 +346,8 @@ public class MainActivity extends Activity {
     private LinearLayout createControlPanel() {
         LinearLayout panel = new LinearLayout(this);
         panel.setOrientation(LinearLayout.VERTICAL);
-        panel.setPadding(dp(12), dp(8), dp(10), dp(10));
-        panel.setBackground(panelBackground(COLOR_PANEL, dp(8), COLOR_BORDER));
+        panel.setPadding(dp(12), dp(8), dp(12), dp(10));
+        panel.setBackground(panelBackground(COLOR_PANEL, dp(10), COLOR_BORDER));
         panel.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -420,18 +420,18 @@ public class MainActivity extends Activity {
         RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(178), dp(178));
         knobParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
         knobParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        knobParams.setMargins(0, dp(18), 0, 0);
+        knobParams.setMargins(0, dp(12), 0, 0);
         leftArea.addView(tuningKnob, knobParams);
 
-        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(118), RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(130), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        buttonParams.setMargins(0, dp(42), 0, 0);
+        buttonParams.setMargins(0, dp(30), 0, 0);
         deck.addView(buttons, buttonParams);
 
         panel.addView(deck, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(222)
+                dp(214)
         ));
 
         return panel;
@@ -492,12 +492,15 @@ public class MainActivity extends Activity {
         protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
             rect.set(0.5f, 0.5f, getWidth() + dp(4), getHeight() - 0.5f);
-            canvas.drawRoundRect(rect, dp(4), dp(4), fillPaint);
-            canvas.drawRoundRect(rect, dp(4), dp(4), strokePaint);
-            canvas.save();
-            canvas.rotate(90, getWidth() / 2f, getHeight() / 2f);
-            canvas.drawText("DECK", getWidth() / 2f, getHeight() / 2f - (textPaint.ascent() + textPaint.descent()) / 2f, textPaint);
-            canvas.restore();
+            canvas.drawRoundRect(rect, dp(7), dp(7), fillPaint);
+            canvas.drawRoundRect(rect, dp(7), dp(7), strokePaint);
+            String label = "DECK";
+            float lineHeight = dp(13);
+            float total = lineHeight * (label.length() - 1);
+            float y = getHeight() / 2f - total / 2f - (textPaint.ascent() + textPaint.descent()) / 2f;
+            for (int i = 0; i < label.length(); i++) {
+                canvas.drawText(String.valueOf(label.charAt(i)), getWidth() / 2f, y + i * lineHeight, textPaint);
+            }
         }
     }
 
@@ -968,7 +971,7 @@ public class MainActivity extends Activity {
         button.setTextSize(11);
         button.setGravity(Gravity.CENTER);
         button.setPadding(dp(2), 0, dp(2), 0);
-        button.setBackground(panelBackground(COLOR_BUTTON, dp(6), COLOR_BORDER));
+        button.setBackground(panelBackground(COLOR_BUTTON, dp(7), COLOR_BORDER));
         return button;
     }
 
@@ -1102,30 +1105,35 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-receiver-handle:before{content:\\'\\';position:absolute!important;left:50%!important;top:4px!important;margin-left:-8px!important;width:0!important;height:0!important;border-left:8px solid transparent!important;border-right:8px solid transparent!important;border-top:9px solid #d7f6ff!important;filter:drop-shadow(0 0 7px rgba(159,234,255,.78))!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:after{content:\\'RECEIVER\\';position:absolute!important;left:0!important;right:0!important;bottom:1px!important;text-align:center!important;color:rgba(215,246,255,.72)!important;font:700 7px/8px sans-serif!important;letter-spacing:.8px!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle.sd-pull{transform:translateY(9px)!important;transition:transform .1s ease-out!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:auto!important;right:0!important;top:96px!important;width:min(88vw,400px)!important;max-width:88vw!important;height:54vh!important;max-height:54vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:4px 0 0 4px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;border-right:0!important;box-shadow:0 0 30px rgba(120,214,255,.16),-18px 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;transform:translateX(108%)!important;opacity:0!important;pointer-events:none!important;transition:transform .18s ease-out,opacity .18s ease-out!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:8px!important;right:8px!important;top:96px!important;width:auto!important;max-width:none!important;height:auto!important;max-height:58vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:10px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),-18px 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 12px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;transform:translateX(108%)!important;opacity:0!important;pointer-events:none!important;transition:transform .18s ease-out,opacity .18s ease-out!important;}"
                 + ".signaldeck-skin.sd-receiver-open #openwebrx-panel-receiver{transform:translateX(0)!important;opacity:1!important;pointer-events:auto!important;}"
-                + ".signaldeck-skin #signaldeck-receiver-tab{position:fixed!important;right:0!important;top:36vh!important;width:24px!important;height:104px!important;z-index:79!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:4px 0 0 4px!important;border:1px solid rgba(159,234,255,.55)!important;border-right:0!important;background:rgba(7,18,27,.86)!important;color:#d7f6ff!important;box-shadow:0 0 18px rgba(120,214,255,.2),-8px 8px 24px rgba(0,0,0,.32)!important;font:800 9px/10px sans-serif!important;letter-spacing:.8px!important;writing-mode:vertical-rl!important;text-orientation:mixed!important;text-transform:uppercase!important;opacity:.88!important;pointer-events:auto!important;transition:opacity .16s ease-out,transform .16s ease-out!important;}"
+                + ".signaldeck-skin #signaldeck-receiver-tab{position:fixed!important;right:0!important;top:36vh!important;width:24px!important;height:104px!important;z-index:79!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:7px 0 0 7px!important;border:1px solid rgba(159,234,255,.55)!important;border-right:0!important;background:rgba(7,18,27,.86)!important;color:#d7f6ff!important;box-shadow:0 0 18px rgba(120,214,255,.2),-8px 8px 24px rgba(0,0,0,.32)!important;font:800 8px/11px sans-serif!important;letter-spacing:1px!important;writing-mode:vertical-rl!important;text-orientation:upright!important;text-transform:uppercase!important;opacity:.88!important;pointer-events:auto!important;transition:opacity .16s ease-out,transform .16s ease-out!important;}"
                 + ".signaldeck-skin.sd-receiver-open #signaldeck-receiver-tab{opacity:.24!important;transform:translateX(18px)!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:4px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:4px!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-section-divider{border-radius:3px!important;background:rgba(5,13,21,.72)!important;color:#d7f6ff!important;padding:6px 8px!important;margin-top:8px!important;border-color:rgba(159,234,255,.32)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:7px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:7px!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-section-divider{border-radius:7px!important;background:rgba(5,13,21,.72)!important;color:#d7f6ff!important;padding:6px 8px!important;margin-top:8px!important;border-color:rgba(159,234,255,.32)!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-modes .openwebrx-button{min-height:34px!important;font-weight:700!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-dig-row=true]{display:flex!important;align-items:center!important;gap:7px!important;margin-top:7px!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-dig-row=true] .openwebrx-button{width:56px!important;min-width:56px!important;min-height:32px!important;height:32px!important;padding:0!important;line-height:30px!important;font-size:13px!important;}"
-                + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-dig-row=true] select{flex:1!important;min-width:0!important;height:32px!important;}"
-                + ".signaldeck-skin #signaldeck-waterfall-controls{display:none;margin:9px 0 0!important;padding:7px 8px!important;border:1px solid rgba(159,234,255,.18)!important;background:rgba(5,13,21,.44)!important;border-radius:4px!important;box-sizing:border-box!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-dig-row=true] .openwebrx-button{flex:1!important;width:auto!important;min-width:0!important;min-height:36px!important;height:36px!important;padding:0!important;line-height:34px!important;font-size:13px!important;}"
+                + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-dig-row=true] select{flex:1!important;min-width:0!important;height:36px!important;}"
+                + ".signaldeck-skin #signaldeck-waterfall-controls{display:none;margin:9px 0 0!important;padding:8px 9px!important;border:1px solid rgba(159,234,255,.18)!important;background:rgba(5,13,21,.44)!important;border-radius:8px!important;box-sizing:border-box!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-head{display:flex!important;align-items:center!important;justify-content:space-between!important;margin-bottom:5px!important;color:#edf8ff!important;font:700 11px/14px sans-serif!important;letter-spacing:.2px!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-actions{display:flex!important;gap:5px!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls button{height:22px!important;min-height:22px!important;padding:0 8px!important;border-radius:4px!important;border:1px solid rgba(159,234,255,.38)!important;background:rgba(16,40,58,.92)!important;color:#fff!important;font:700 10px/20px sans-serif!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-row{display:grid!important;grid-template-columns:38px 1fr 40px!important;align-items:center!important;gap:7px!important;margin-top:4px!important;color:#b8ccd8!important;font:700 10px/18px sans-serif!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls input[type=range]{width:100%!important;height:24px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;accent-color:#9feaff!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-value{text-align:right!important;color:#edf8ff!important;font:700 9px/18px monospace!important;}"
-                + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;background:rgba(5,13,21,.32)!important;border-radius:4px!important;overflow:hidden!important;font:12px/15px sans-serif!important;}"
-                + ".signaldeck-skin table[data-signaldeck-decoder-table=true] th{padding:4px 5px!important;color:#edf8ff!important;background:rgba(7,18,27,.54)!important;font-weight:800!important;}"
-                + ".signaldeck-skin table[data-signaldeck-decoder-table=true] td{padding:3px 5px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{border-radius:4px!important;border:1px solid rgba(159,234,255,.24)!important;box-shadow:0 0 20px rgba(120,214,255,.08)!important;overflow:auto!important;}"
+                + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{display:none!important;}"
+                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;padding:10px 12px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-title{font:800 12px/16px sans-serif!important;color:#edf8ff!important;margin:0 0 7px!important;letter-spacing:.2px!important;}"
+                + ".signaldeck-skin .sd-decoder-grid{display:grid!important;gap:1px!important;background:rgba(159,234,255,.22)!important;border-radius:5px!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:repeat(var(--sd-cols),minmax(0,1fr))!important;gap:1px!important;min-width:0!important;}"
+                + ".signaldeck-skin .sd-decoder-cell{min-width:0!important;padding:4px 6px!important;background:rgba(5,13,21,.55)!important;color:#edf8ff!important;font:12px/15px sans-serif!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
+                + ".signaldeck-skin .sd-decoder-row:first-child .sd-decoder-cell{font-weight:800!important;text-align:center!important;background:rgba(255,255,255,.92)!important;color:#16232c!important;}"
+                + ".signaldeck-skin .sd-decoder-empty{padding:12px!important;color:#9fb5c3!important;font:700 12px/16px sans-serif!important;text-align:center!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-hidden=true],.signaldeck-skin #openwebrx-panel-receiver [id*=settings],.signaldeck-skin #openwebrx-panel-receiver [id*=display],.signaldeck-skin #openwebrx-panel-receiver [class*=settings],.signaldeck-skin #openwebrx-panel-receiver [class*=display]{display:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-hint{transform:translateX(18px)!important;transition:transform .12s ease-out!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-up-hint{transform:translateY(-24px)!important;transition:transform .12s ease-out!important;}"
@@ -1149,7 +1157,10 @@ public class MainActivity extends Activity {
                 + "function hideBlockFromHeader(header){header.style.display='none';header.setAttribute('data-signaldeck-hidden','true');var node=header.nextElementSibling;while(node){var t=normText(node);if(t.indexOf('modes')>=0||t.indexOf('controls')>=0||t.indexOf('settings')>=0||t.indexOf('display')>=0){break;}node.style.display='none';node.setAttribute('data-signaldeck-hidden','true');node=node.nextElementSibling;}}"
                 + "function hideReceiverSections(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var nodes=panel.querySelectorAll('*');for(var i=0;i<nodes.length;i++){var t=normText(nodes[i]);var own=(ownText(nodes[i])||'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();var isHeader=nodes[i].className&&((' '+nodes[i].className+' ').toLowerCase().indexOf('openwebrx-section-divider')>=0);if(isHeader||own==='settings'||own==='display'||own==='controls'){if(t.indexOf('settings')>=0||t.indexOf('display')>=0||t.indexOf('controls')>=0){hideBlockFromHeader(nodes[i]);}}}var rows=panel.querySelectorAll('.openwebrx-panel-line');for(var j=0;j<rows.length;j++){var rt=normText(rows[j]);if(rt.indexOf('sq')>=0||rt.indexOf('nr')>=0||rt.indexOf('volume')>=0||rt.indexOf('audio')>=0||rt.indexOf('1khz')>=0){rows[j].style.display='none';rows[j].setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function hideNativeStatusMeters(){var terms=/\\b(audio buffer|audio output|audio stream|network usage|server cpu|clients)\\b/i;var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.closest&&el.closest('#signaldeck-deck,#signaldeck-receiver-modal,#openwebrx-panel-receiver,.openwebrx-message-panel,.openwebrx-meta-panel,#openwebrx-panel-digimodes')){continue;}var text=((el.textContent||'')+'').replace(/\\s+/g,' ').trim();if(!terms.test(text)){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0||r.top<window.innerHeight*.52||r.height>96||r.width>window.innerWidth*.82){continue;}var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(!pr||pr.width<=0||pr.height<=0){break;}if(pr.top<window.innerHeight*.5||pr.height>110||pr.width>window.innerWidth*.9){break;}box=p;}box.style.display='none';box.style.pointerEvents='none';box.style.visibility='hidden';box.setAttribute('data-signaldeck-native-meter','true');}}"
-                + "function markDecoderTables(){var tables=document.body?document.body.querySelectorAll('table'):[];var marked=0;for(var i=0;i<tables.length;i++){var text=((tables[i].innerText||tables[i].textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();if(!/(freq\\s+text|id\\s+device|pressure_kpa|temperature_c|crc|tpms|packet|callsign|message|device)/.test(text)){continue;}tables[i].setAttribute('data-signaldeck-decoder-table','true');marked++;var wrap=tables[i].parentElement;if(wrap&&wrap.getBoundingClientRect().width>window.innerWidth*.55){wrap.setAttribute('data-signaldeck-decoder-wrap','true');}}if(marked){console.log('SignalDeck decoder tables marked='+marked);}}"
+                + "function cellText(cell){return ((cell&&cell.textContent)||'').replace(/\\s+/g,' ').trim();}"
+                + "function decoderTableWanted(table){var text=((table.innerText||table.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();return /(freq\\s+text|id\\s+device|pressure_kpa|pressure kpa|temperature_c|temperature c|crc|tpms|packet|callsign|message|device)/.test(text);}"
+                + "function renderDecoderPanel(table){var rows=[];var maxCols=0;for(var r=0;r<table.rows.length&&rows.length<32;r++){var cells=[];for(var c=0;c<table.rows[r].cells.length&&c<4;c++){cells.push(cellText(table.rows[r].cells[c]));}while(cells.length&&cells[cells.length-1]===''){cells.pop();}if(!cells.length){continue;}maxCols=Math.max(maxCols,cells.length);rows.push(cells);}if(!rows.length){return false;}maxCols=Math.max(2,Math.min(4,maxCols));var sig=JSON.stringify(rows);if(table.getAttribute('data-signaldeck-decoder-sig')===sig&&table.previousElementSibling&&table.previousElementSibling.classList&&table.previousElementSibling.classList.contains('sd-decoder-panel')){return true;}table.setAttribute('data-signaldeck-decoder-sig',sig);if(table.previousElementSibling&&table.previousElementSibling.classList&&table.previousElementSibling.classList.contains('sd-decoder-panel')){table.previousElementSibling.remove();}var panel=document.createElement('div');panel.className='sd-decoder-panel';var title=document.createElement('div');title.className='sd-decoder-title';title.textContent='Decoded packets';panel.appendChild(title);var grid=document.createElement('div');grid.className='sd-decoder-grid';grid.style.setProperty('--sd-cols',String(maxCols));for(var i=0;i<rows.length;i++){var row=document.createElement('div');row.className='sd-decoder-row';row.style.setProperty('--sd-cols',String(maxCols));for(var j=0;j<maxCols;j++){var cell=document.createElement('div');cell.className='sd-decoder-cell';cell.textContent=rows[i][j]||'';row.appendChild(cell);}grid.appendChild(row);}panel.appendChild(grid);table.parentElement.insertBefore(panel,table);return true;}"
+                + "function markDecoderTables(){var tables=document.body?document.body.querySelectorAll('table'):[];var marked=0;for(var i=0;i<tables.length;i++){if(!decoderTableWanted(tables[i])){continue;}tables[i].setAttribute('data-signaldeck-decoder-table','true');var wrap=tables[i].parentElement;if(wrap){wrap.setAttribute('data-signaldeck-decoder-wrap','true');}if(renderDecoderPanel(tables[i])){marked++;}}if(marked){console.log('SignalDeck decoder panels='+marked);}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function installReceiverSwipe(){if(window.__signalDeckReceiverSwipe){return;}window.__signalDeckReceiverSwipe=true;var sx=0,sy=0,fromRight=false,onPanel=false;document.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;fromRight=sx>window.innerWidth-34;onPanel=!!(e.target&&e.target.closest&&e.target.closest('#openwebrx-panel-receiver'));},{passive:true});document.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>90||Math.abs(dx)<70){return;}if(!receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&fromRight&&dx<-72){showReceiver();return;}if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&onPanel&&dx>72){hideReceiver();return;}},{passive:true});}"
                 + "function ensureReceiverTab(){if(document.getElementById('signaldeck-receiver-tab')){return;}var tab=document.createElement('div');tab.id='signaldeck-receiver-tab';tab.textContent='Receiver';tab.addEventListener('click',function(){showReceiver();});document.body.appendChild(tab);}"
@@ -1326,9 +1337,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnControlParams(boolean button) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                button ? dp(25) : dp(29)
+                button ? dp(29) : dp(31)
         );
-        params.setMargins(dp(2), dp(2), dp(2), dp(3));
+        params.setMargins(dp(1), dp(2), dp(1), dp(3));
         return params;
     }
 
@@ -1367,7 +1378,7 @@ public class MainActivity extends Activity {
                 FrameLayout.LayoutParams.WRAP_CONTENT
         );
         params.gravity = Gravity.BOTTOM;
-        params.setMargins(0, 0, 0, Math.max(dp(8), safeBottomInset));
+        params.setMargins(dp(2), 0, dp(2), Math.max(dp(8), safeBottomInset));
         return params;
     }
 
@@ -1393,7 +1404,7 @@ public class MainActivity extends Activity {
     private GradientDrawable panelBackground(int color, int radius, int strokeColor) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
-        drawable.setCornerRadius(dp(4));
+        drawable.setCornerRadius(radius);
         drawable.setStroke(dp(1), strokeColor);
         return drawable;
     }
