@@ -6,6 +6,16 @@
 
 - Project documentation added: `PROJECT.md`, `ROADMAP.md`, architecture notes and GitHub templates.
 
+## v0.1.3 - 2026-07-18
+
+### Changed
+
+- Deck layout now emphasizes the rotary encoder with a larger tuning knob.
+- Deck action buttons were made smaller and moved into a compact right column.
+- Receiver button was removed from the deck; the Receiver side tab is the single Receiver entry point.
+- Deck and Receiver side tabs no longer show arrow glyphs.
+- Deck gesture handling is limited to the actual deck panel/tab so Receiver swipes no longer open Deck.
+
 ## v0.1.2 - 2026-07-17
 
 ### Added

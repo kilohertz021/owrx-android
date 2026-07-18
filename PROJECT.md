@@ -11,7 +11,7 @@ Status: experimental public test build.
 Current APK:
 
 ```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.2-e538aad.apk
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.3-825221e.apk
 ```
 
 Latest APK:
