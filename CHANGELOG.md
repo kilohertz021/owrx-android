@@ -4,6 +4,9 @@
 
 ### Changed
 
+- Deck and Receiver side tabs now share one native drawing/positioning path while keeping separate panel behavior.
+- Receiver opening still uses the restored Receiver WebView panel flow instead of the reverted Deck-native path.
+- Fax and SSTV image decoder output now use a taller media viewer treatment instead of the compact packet-card styling.
 - Restored the previous Receiver side-tab behavior instead of forcing it into the native Deck tab path.
 - Fax decoder output now gets a taller dedicated viewing area instead of the compact generic decoder-card treatment.
 - Receiver keeps extra bottom room below waterfall controls to avoid accidental slider touches.

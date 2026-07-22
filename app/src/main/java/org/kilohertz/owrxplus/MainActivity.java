@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
     private TextView frequencyText;
     private FrameLayout rootLayout;
     private LinearLayout controlPanel;
+    private View receiverTab;
     private View collapsedPanel;
     private FrameLayout receiverDrawer;
     private LinearLayout receiverListView;
@@ -92,6 +93,7 @@ public class MainActivity extends Activity {
         @Override
         public void run() {
             pollReceiverStatus();
+            syncReceiverTabVisibility();
             uiHandler.postDelayed(this, 1000);
         }
     };
@@ -250,6 +252,9 @@ public class MainActivity extends Activity {
         controlPanel = createControlPanel();
         root.addView(controlPanel, bottomPanelParams());
 
+        receiverTab = createReceiverTab();
+        root.addView(receiverTab, receiverTabParams());
+
         collapsedPanel = createCollapsedPanel();
         collapsedPanel.setVisibility(View.GONE);
         root.addView(collapsedPanel, collapsedPanelParams());
@@ -296,6 +301,9 @@ public class MainActivity extends Activity {
         }
         if (controlPanel != null) {
             controlPanel.setLayoutParams(bottomPanelParams());
+        }
+        if (receiverTab != null) {
+            receiverTab.setLayoutParams(receiverTabParams());
         }
         if (collapsedPanel != null) {
             collapsedPanel.setLayoutParams(collapsedPanelParams());
@@ -438,7 +446,7 @@ public class MainActivity extends Activity {
     }
 
     private View createCollapsedPanel() {
-        DeckTabView panel = new DeckTabView(this);
+        SideTabView panel = new SideTabView(this, "DECK");
         panel.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -469,14 +477,48 @@ public class MainActivity extends Activity {
         return panel;
     }
 
-    private class DeckTabView extends View {
+    private View createReceiverTab() {
+        SideTabView panel = new SideTabView(this, "RECEIVER");
+        panel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    deckTouchStartX = event.getRawX();
+                    deckTouchStartY = event.getRawY();
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    float dx = event.getRawX() - deckTouchStartX;
+                    float dy = event.getRawY() - deckTouchStartY;
+                    if (dx < -dp(32) && Math.abs(dy) < dp(90)) {
+                        showReceiverPanel();
+                        return true;
+                    }
+                    showReceiverPanel();
+                    return true;
+                }
+                return false;
+            }
+        });
+        panel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showReceiverPanel();
+            }
+        });
+        return panel;
+    }
+
+    private class SideTabView extends View {
         private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
+        private final String label;
 
-        DeckTabView(Activity context) {
+        SideTabView(Activity context, String label) {
             super(context);
+            this.label = label;
             fillPaint.setColor(0xDB07121B);
             strokePaint.setStyle(Paint.Style.STROKE);
             strokePaint.setStrokeWidth(dp(1));
@@ -494,7 +536,6 @@ public class MainActivity extends Activity {
             rect.set(0.5f, 0.5f, getWidth() + dp(2), getHeight() - 0.5f);
             canvas.drawRoundRect(rect, dp(7), dp(7), fillPaint);
             canvas.drawRoundRect(rect, dp(7), dp(7), strokePaint);
-            String label = "DECK";
             float lineHeight = dp(12);
             float total = lineHeight * (label.length() - 1);
             float y = getHeight() / 2f - total / 2f - (textPaint.ascent() + textPaint.descent()) / 2f;
@@ -1020,6 +1061,39 @@ public class MainActivity extends Activity {
         );
     }
 
+    private void showReceiverPanel() {
+        if (receiverTab != null) {
+            receiverTab.setVisibility(View.GONE);
+        }
+        runReceiverScript(
+                "if(window.SignalDeckReceiver&&window.SignalDeckReceiver.show){window.SignalDeckReceiver.show();}"
+                        + "else{var root=document.documentElement;var panel=document.getElementById('openwebrx-panel-receiver');"
+                        + "if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';root.classList.add('sd-receiver-open');}}"
+        );
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                syncReceiverTabVisibility();
+            }
+        }, 250);
+    }
+
+    private void syncReceiverTabVisibility() {
+        if (receiverTab == null || webView == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            return;
+        }
+        webView.evaluateJavascript(
+                "(function(){return !!(window.SignalDeckReceiver&&window.SignalDeckReceiver.isOpen&&window.SignalDeckReceiver.isOpen());})()",
+                value -> {
+                    boolean open = "true".equals(value);
+                    receiverTab.setVisibility(open ? View.GONE : View.VISIBLE);
+                    if (!open) {
+                        receiverTab.bringToFront();
+                    }
+                }
+        );
+    }
+
     private String stepScript(int direction) {
         String indexChange = direction < 0
                 ? "Math.max(0,s.selectedIndex-1)"
@@ -1107,8 +1181,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-receiver-handle.sd-pull{transform:translateY(9px)!important;transition:transform .1s ease-out!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver{position:fixed!important;left:8px!important;right:8px!important;top:96px!important;width:auto!important;max-width:none!important;height:auto!important;max-height:58vh!important;overflow-y:auto!important;overflow-x:hidden!important;z-index:80!important;border-radius:10px!important;background:rgba(7,18,27,.98)!important;border:1px solid rgba(159,234,255,.5)!important;box-shadow:0 0 30px rgba(120,214,255,.16),-18px 18px 42px rgba(0,0,0,.5)!important;padding:10px 12px 36px!important;backdrop-filter:blur(8px)!important;overscroll-behavior:contain!important;transform:translateX(108%)!important;opacity:0!important;pointer-events:none!important;transition:transform .18s ease-out,opacity .18s ease-out!important;}"
                 + ".signaldeck-skin.sd-receiver-open #openwebrx-panel-receiver{transform:translateX(0)!important;opacity:1!important;pointer-events:auto!important;}"
-                + ".signaldeck-skin #signaldeck-receiver-tab{position:fixed!important;right:0!important;top:36vh!important;width:24px!important;height:104px!important;z-index:79!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:7px 0 0 7px!important;border:1px solid rgba(159,234,255,.55)!important;border-right:0!important;background:rgba(7,18,27,.86)!important;color:#d7f6ff!important;box-shadow:0 0 18px rgba(120,214,255,.2),-8px 8px 24px rgba(0,0,0,.32)!important;font:800 8px/11px sans-serif!important;letter-spacing:1px!important;writing-mode:vertical-rl!important;text-orientation:upright!important;text-transform:uppercase!important;opacity:.88!important;pointer-events:auto!important;transition:opacity .16s ease-out,transform .16s ease-out!important;}"
-                + ".signaldeck-skin.sd-receiver-open #signaldeck-receiver-tab{opacity:.24!important;transform:translateX(18px)!important;pointer-events:none!important;}"
+
                 + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:7px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
@@ -1136,11 +1209,11 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 0!important;padding:8px 10px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 12px/15px sans-serif!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]+[data-signaldeck-decoder-output=true]{margin-top:0!important;border-radius:0 0 10px 10px!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;left:auto!important;right:auto!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;min-height:38vh!important;margin:8px 6px 12px!important;padding:6px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:auto!important;left:auto!important;right:auto!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-output=true] canvas,.signaldeck-skin [data-signaldeck-decoder-output=true] img,.signaldeck-skin [data-signaldeck-decoder-output=true] video{max-width:100%!important;width:100%!important;height:auto!important;border-radius:8px!important;display:block!important;box-sizing:border-box!important;}"
-                + ".signaldeck-skin [data-signaldeck-fax-output=true]{min-height:56vh!important;max-height:none!important;overflow:auto!important;background:rgba(2,18,38,.88)!important;}"
-                + ".signaldeck-skin [data-signaldeck-fax-output=true] canvas,.signaldeck-skin [data-signaldeck-fax-output=true] img{width:100%!important;max-width:none!important;height:auto!important;min-height:52vh!important;object-fit:contain!important;background:transparent!important;}"
-                + ".signaldeck-skin [data-signaldeck-fax-titlebar=true]{position:sticky!important;top:58px!important;z-index:12!important;}"
+                + ".signaldeck-skin [data-signaldeck-media-decoder=true]{min-height:58vh!important;max-height:none!important;overflow:auto!important;background:rgba(2,18,38,.9)!important;}"
+                + ".signaldeck-skin [data-signaldeck-media-decoder=true] canvas,.signaldeck-skin [data-signaldeck-media-decoder=true] img{width:100%!important;max-width:none!important;height:auto!important;min-height:52vh!important;object-fit:contain!important;background:transparent!important;}"
+                + ".signaldeck-skin [data-signaldeck-media-titlebar=true]{position:relative!important;z-index:12!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-output=true] table:not([data-signaldeck-decoder-table=true]){width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font:12px/15px sans-serif!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-output=true] th,.signaldeck-skin [data-signaldeck-decoder-output=true] td{padding:4px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-hidden=true],.signaldeck-skin #openwebrx-panel-receiver [id*=settings],.signaldeck-skin #openwebrx-panel-receiver [id*=display],.signaldeck-skin #openwebrx-panel-receiver [class*=settings],.signaldeck-skin #openwebrx-panel-receiver [class*=display]{display:none!important;}"
@@ -1153,6 +1226,8 @@ public class MainActivity extends Activity {
                 + "function receiverVisible(panel){return !!(panel&&document.documentElement.classList.contains('sd-receiver-open'));}"
                 + "function showReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';document.documentElement.classList.add('sd-receiver-open');hideReceiverSections();ensureWaterfallControls();return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
                 + "function hideReceiver(){document.documentElement.classList.remove('sd-receiver-open');}"
+                + "function toggleReceiver(){if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))){hideReceiver();}else{showReceiver();}}"
+                + "window.SignalDeckReceiver={show:showReceiver,hide:hideReceiver,toggle:toggleReceiver,isOpen:function(){return receiverVisible(document.getElementById('openwebrx-panel-receiver'));}};"
                 + "function ensureDefaultStep(){if(window.__signalDeckStepTouched){return;}var s=document.getElementById('openwebrx-tuning-step-listbox');if(!s||!s.options||!s.options.length){return;}var found=-1;for(var i=0;i<s.options.length;i++){var o=s.options[i];var raw=((o.value||'')+' '+(o.textContent||'')).toLowerCase().replace(/\\s+/g,'');var val=parseFloat(o.value);if(val===1000||raw.indexOf('1khz')>=0||raw.indexOf('1000hz')>=0){found=i;break;}}if(found>=0&&s.selectedIndex!==found){s.selectedIndex=found;s.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck default step 1kHz');}}"
                 + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){var id=(panels[i].id||'').toLowerCase();if(id!=='openwebrx-panel-receiver'&&/(log|status|map|files|settings|help)/.test(id)){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
@@ -1174,12 +1249,12 @@ public class MainActivity extends Activity {
                 + "function badDecoderBox(el){var r=el.getBoundingClientRect();return !decoderPayload(el)||(r&&r.height<70);}"
                 + "function clearBadDecoderMarks(){var marked=document.querySelectorAll('[data-signaldeck-decoder-output=true]');for(var i=0;i<marked.length;i++){if(badDecoderBox(marked[i])){marked[i].removeAttribute('data-signaldeck-decoder-output');}}var bars=document.querySelectorAll('[data-signaldeck-decoder-titlebar=true]');for(var j=0;j<bars.length;j++){var n=bars[j].nextElementSibling;if(!n||!n.hasAttribute('data-signaldeck-decoder-output')){bars[j].removeAttribute('data-signaldeck-decoder-titlebar');}}}"
                 + "function markDecoderOutputs(){clearBadDecoderMarks();var terms=/\\b(fax|sstv|tpms|ism|decoded|decoder|packets?|callsign|message|device|pressure_kpa|temperature_c)\\b/i;var nodes=document.body?document.body.querySelectorAll('div,section,article'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.closest&&el.closest('#openwebrx-panel-receiver,#signaldeck-receiver-modal,.webrx-top-container,.openwebrx-main-buttons')){continue;}var txt=((el.innerText||el.textContent||'')+'').replace(/\\s+/g,' ').trim();var r=el.getBoundingClientRect();if(!r||r.width<window.innerWidth*.48||r.top<80){continue;}if(terms.test(txt)&&decoderPayload(el)&&r.height>=90&&r.height<window.innerHeight*.68){el.setAttribute('data-signaldeck-decoder-output','true');continue;}if(!terms.test(txt)||r.height>64){continue;}var next=el.nextElementSibling;var guard=0;while(next&&guard++<4){if(next.closest&&next.closest('#openwebrx-panel-receiver,.webrx-top-container')){break;}var nr=next.getBoundingClientRect();if(nr&&nr.width>=window.innerWidth*.48&&nr.height>=70&&decoderPayload(next)){el.setAttribute('data-signaldeck-decoder-titlebar','true');next.setAttribute('data-signaldeck-decoder-output','true');break;}next=next.nextElementSibling;}}}"
-                + "function markFaxOutputs(){var bars=document.querySelectorAll('[data-signaldeck-decoder-titlebar=true]');for(var i=0;i<bars.length;i++){var txt=((bars[i].innerText||bars[i].textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();if(txt.indexOf('fax')<0){continue;}var out=bars[i].nextElementSibling;if(!out){continue;}bars[i].setAttribute('data-signaldeck-fax-titlebar','true');out.setAttribute('data-signaldeck-fax-output','true');out.setAttribute('data-signaldeck-decoder-output','true');}}"
+                + "function markMediaDecoderOutputs(){var bars=document.querySelectorAll('[data-signaldeck-decoder-titlebar=true]');for(var i=0;i<bars.length;i++){var txt=((bars[i].innerText||bars[i].textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();if(txt.indexOf('fax')<0&&txt.indexOf('sstv')<0){continue;}var out=bars[i].nextElementSibling;if(!out){continue;}bars[i].setAttribute('data-signaldeck-media-titlebar','true');out.setAttribute('data-signaldeck-media-decoder','true');out.setAttribute('data-signaldeck-decoder-output','true');}}"
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function installReceiverSwipe(){if(window.__signalDeckReceiverSwipe){return;}window.__signalDeckReceiverSwipe=true;var sx=0,sy=0,fromRight=false,onPanel=false;document.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;fromRight=sx>window.innerWidth-34;onPanel=!!(e.target&&e.target.closest&&e.target.closest('#openwebrx-panel-receiver'));},{passive:true});document.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>90||Math.abs(dx)<70){return;}if(!receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&fromRight&&dx<-72){showReceiver();return;}if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&onPanel&&dx>72){hideReceiver();return;}},{passive:true});}"
-                + "function ensureReceiverTab(){if(document.getElementById('signaldeck-receiver-tab')){return;}var tab=document.createElement('div');tab.id='signaldeck-receiver-tab';tab.textContent='Receiver';tab.addEventListener('click',function(){showReceiver();});document.body.appendChild(tab);}"
-                + "hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markFaxOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(function(){markDecoderTables();markDecoderOutputs();markFaxOutputs();},1500);"
-                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();tidyDigRow();markDecoderTables();markDecoderOutputs();markFaxOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();ensureReceiverTab();}).observe(document.body,{childList:true,subtree:true});"
+
+                + "hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(function(){markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();},1500);"
+                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();tidyDigRow();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();}).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }
 
@@ -1397,16 +1472,24 @@ public class MainActivity extends Activity {
     }
 
     private FrameLayout.LayoutParams collapsedPanelParams() {
+        return sideTabParams(1);
+    }
+
+    private FrameLayout.LayoutParams receiverTabParams() {
+        return sideTabParams(0);
+    }
+
+    private FrameLayout.LayoutParams sideTabParams(int slot) {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 dp(24),
                 dp(104)
         );
         params.gravity = Gravity.RIGHT | Gravity.TOP;
         int screenHeight = getResources().getDisplayMetrics().heightPixels;
-        int receiverTop = safeTopInset + Math.round(screenHeight * 0.36f);
-        int maxTop = Math.max(safeTopInset + dp(116), screenHeight - safeBottomInset - dp(124));
-        int deckTop = Math.max(safeTopInset + dp(116), Math.min(receiverTop + dp(112), maxTop));
-        params.setMargins(0, deckTop, 0, 0);
+        int minTop = safeTopInset + dp(116);
+        int maxTop = Math.max(minTop, screenHeight - safeBottomInset - dp(216));
+        int receiverTop = Math.max(minTop, Math.min(safeTopInset + Math.round(screenHeight * 0.36f), maxTop));
+        params.setMargins(0, receiverTop + dp(112 * slot), 0, 0);
         return params;
     }
 
