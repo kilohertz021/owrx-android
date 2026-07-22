@@ -382,6 +382,7 @@ public class MainActivity extends Activity {
 
         LinearLayout buttons = sideColumn(
                 receiverListButton(),
+                control("MAP", mapPanelScript()),
                 control("Zoom +", "if (typeof zoomInOneStep==='function') zoomInOneStep();"),
                 control("Zoom -", "if (typeof zoomOutOneStep==='function') zoomOutOneStep();"),
                 mobileRangeControl("SQ"),
@@ -434,7 +435,7 @@ public class MainActivity extends Activity {
         RelativeLayout.LayoutParams buttonParams = new RelativeLayout.LayoutParams(dp(130), RelativeLayout.LayoutParams.WRAP_CONTENT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
         buttonParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        buttonParams.setMargins(0, dp(30), 0, 0);
+        buttonParams.setMargins(0, dp(18), 0, 0);
         deck.addView(buttons, buttonParams);
 
         panel.addView(deck, new LinearLayout.LayoutParams(
@@ -526,7 +527,7 @@ public class MainActivity extends Activity {
             textPaint.setColor(0xFFD7F6FF);
             textPaint.setTextAlign(Paint.Align.CENTER);
             textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            textPaint.setTextSize(dp(8));
+            textPaint.setTextSize(dp(9));
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
 
@@ -536,12 +537,13 @@ public class MainActivity extends Activity {
             rect.set(0.5f, 0.5f, getWidth() + dp(2), getHeight() - 0.5f);
             canvas.drawRoundRect(rect, dp(7), dp(7), fillPaint);
             canvas.drawRoundRect(rect, dp(7), dp(7), strokePaint);
-            float lineHeight = dp(12);
-            float total = lineHeight * (label.length() - 1);
-            float y = getHeight() / 2f - total / 2f - (textPaint.ascent() + textPaint.descent()) / 2f;
-            for (int i = 0; i < label.length(); i++) {
-                canvas.drawText(String.valueOf(label.charAt(i)), getWidth() / 2f, y + i * lineHeight, textPaint);
-            }
+            float cx = getWidth() / 2f;
+            float cy = getHeight() / 2f;
+            canvas.save();
+            canvas.rotate(-90f, cx, cy);
+            float baseline = cy - (textPaint.ascent() + textPaint.descent()) / 2f;
+            canvas.drawText(label, cx, baseline, textPaint);
+            canvas.restore();
         }
     }
 
@@ -950,6 +952,17 @@ public class MainActivity extends Activity {
         runReceiverScript(rangeControlScript(label, percent));
     }
 
+    private String mapPanelScript() {
+        return "var panel=document.getElementById('openwebrx-panel-map');"
+                + "var toggle=document.querySelector('[data-toggle-panel=\"openwebrx-panel-map\"]');"
+                + "function visible(el){if(!el){return false;}var s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&el.offsetParent!==null;}"
+                + "if(toggle){toggle.click();}"
+                + "else if(panel&&visible(panel)){panel.style.display='none';panel.style.pointerEvents='none';}"
+                + "else if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';panel.style.pointerEvents='auto';}"
+                + "setTimeout(function(){var p=document.getElementById('openwebrx-panel-map');if(p&&visible(p)){p.style.pointerEvents='auto';p.style.visibility='visible';}},80);"
+                + "console.log('SignalDeck MAP toggled='+(!!toggle));";
+    }
+
     private String clickControlScript(String label) {
         return "var wanted='" + label.toLowerCase(Locale.US) + "';"
                 + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
@@ -1174,7 +1187,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin .openwebrx-main-buttons{display:none!important;}"
                 + ".signaldeck-skin #pstt{display:none!important;}"
                 + ".signaldeck-skin [data-signaldeck-native-meter=true]{display:none!important;pointer-events:none!important;visibility:hidden!important;}"
-                + ".signaldeck-skin #openwebrx-panel-log,.signaldeck-skin #openwebrx-panel-status,.signaldeck-skin #openwebrx-panel-map,.signaldeck-skin #openwebrx-panel-files,.signaldeck-skin #openwebrx-panel-settings,.signaldeck-skin #openwebrx-panel-help{display:none!important;pointer-events:none!important;}"
+                + ".signaldeck-skin #openwebrx-panel-log,.signaldeck-skin #openwebrx-panel-status,.signaldeck-skin #openwebrx-panel-files,.signaldeck-skin #openwebrx-panel-settings,.signaldeck-skin #openwebrx-panel-help{display:none!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle{display:none!important;pointer-events:none!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:before{content:\\'\\';position:absolute!important;left:50%!important;top:4px!important;margin-left:-8px!important;width:0!important;height:0!important;border-left:8px solid transparent!important;border-right:8px solid transparent!important;border-top:9px solid #d7f6ff!important;filter:drop-shadow(0 0 7px rgba(159,234,255,.78))!important;}"
                 + ".signaldeck-skin #signaldeck-receiver-handle:after{content:\\'RECEIVER\\';position:absolute!important;left:0!important;right:0!important;bottom:1px!important;text-align:center!important;color:rgba(215,246,255,.72)!important;font:700 7px/8px sans-serif!important;letter-spacing:.8px!important;}"
@@ -1199,17 +1212,17 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-waterfall-controls input[type=range]{width:100%!important;height:24px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;accent-color:#9feaff!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-value{text-align:right!important;color:#edf8ff!important;font:700 9px/18px monospace!important;}"
                 + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{display:none!important;}"
-                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;padding:10px 12px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;margin:8px 36px 10px 8px!important;padding:8px 8px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-title{font:800 12px/16px sans-serif!important;color:#edf8ff!important;margin:0 0 7px!important;letter-spacing:.2px!important;}"
                 + ".signaldeck-skin .sd-decoder-grid{display:grid!important;gap:1px!important;background:rgba(159,234,255,.22)!important;border-radius:5px!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:repeat(var(--sd-cols),minmax(0,1fr))!important;gap:1px!important;min-width:0!important;}"
-                + ".signaldeck-skin .sd-decoder-cell{min-width:0!important;padding:4px 6px!important;background:rgba(5,13,21,.55)!important;color:#edf8ff!important;font:12px/15px sans-serif!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
+                + ".signaldeck-skin .sd-decoder-cell{min-width:0!important;padding:4px 5px!important;background:rgba(5,13,21,.55)!important;color:#edf8ff!important;font:11px/14px sans-serif!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
                 + ".signaldeck-skin .sd-decoder-row:first-child .sd-decoder-cell{font-weight:800!important;text-align:center!important;background:rgba(255,255,255,.92)!important;color:#16232c!important;}"
                 + ".signaldeck-skin .sd-decoder-empty{padding:12px!important;color:#9fb5c3!important;font:700 12px/16px sans-serif!important;text-align:center!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 0!important;padding:8px 10px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 12px/15px sans-serif!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;margin:8px 36px 0 8px!important;padding:7px 9px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 11px/14px sans-serif!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]+[data-signaldeck-decoder-output=true]{margin-top:0!important;border-radius:0 0 10px 10px!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;min-height:38vh!important;margin:8px 6px 12px!important;padding:6px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:auto!important;left:auto!important;right:auto!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;min-height:34vh!important;margin:8px 36px 12px 8px!important;padding:6px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:auto!important;left:auto!important;right:auto!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-output=true] canvas,.signaldeck-skin [data-signaldeck-decoder-output=true] img,.signaldeck-skin [data-signaldeck-decoder-output=true] video{max-width:100%!important;width:100%!important;height:auto!important;border-radius:8px!important;display:block!important;box-sizing:border-box!important;}"
                 + ".signaldeck-skin [data-signaldeck-media-decoder=true]{min-height:58vh!important;max-height:none!important;overflow:auto!important;background:rgba(2,18,38,.9)!important;}"
                 + ".signaldeck-skin [data-signaldeck-media-decoder=true] canvas,.signaldeck-skin [data-signaldeck-media-decoder=true] img{width:100%!important;max-width:none!important;height:auto!important;min-height:52vh!important;object-fit:contain!important;background:transparent!important;}"
@@ -1229,7 +1242,7 @@ public class MainActivity extends Activity {
                 + "function toggleReceiver(){if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))){hideReceiver();}else{showReceiver();}}"
                 + "window.SignalDeckReceiver={show:showReceiver,hide:hideReceiver,toggle:toggleReceiver,isOpen:function(){return receiverVisible(document.getElementById('openwebrx-panel-receiver'));}};"
                 + "function ensureDefaultStep(){if(window.__signalDeckStepTouched){return;}var s=document.getElementById('openwebrx-tuning-step-listbox');if(!s||!s.options||!s.options.length){return;}var found=-1;for(var i=0;i<s.options.length;i++){var o=s.options[i];var raw=((o.value||'')+' '+(o.textContent||'')).toLowerCase().replace(/\\s+/g,'');var val=parseFloat(o.value);if(val===1000||raw.indexOf('1khz')>=0||raw.indexOf('1000hz')>=0){found=i;break;}}if(found>=0&&s.selectedIndex!==found){s.selectedIndex=found;s.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck default step 1kHz');}}"
-                + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){var id=(panels[i].id||'').toLowerCase();if(id!=='openwebrx-panel-receiver'&&/(log|status|map|files|settings|help)/.test(id)){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
+                + "function hideForeignPanels(){var panels=document.querySelectorAll('[id^=\"openwebrx-panel-\"]');for(var i=0;i<panels.length;i++){var id=(panels[i].id||'').toLowerCase();if(id!=='openwebrx-panel-receiver'&&/(log|status|files|settings|help)/.test(id)){panels[i].style.display='none';panels[i].style.pointerEvents='none';}}}"
                 + "function ownText(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function normText(el){return ((ownText(el)||el.textContent||'')+'').replace(/[.:>\\-]/g,' ').replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function tidyDigRow(){var select=document.querySelector('#openwebrx-panel-receiver .openwebrx-secondary-demod-listbox,#openwebrx-panel-receiver select[class*=secondary]');if(!select){return null;}var row=select.closest('.openwebrx-panel-line')||select.parentElement;if(row){row.setAttribute('data-signaldeck-dig-row','true');}return row;}"
@@ -1426,9 +1439,9 @@ public class MainActivity extends Activity {
     private LinearLayout.LayoutParams columnControlParams(boolean button) {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                button ? dp(29) : dp(31)
+                button ? dp(27) : dp(29)
         );
-        params.setMargins(dp(1), dp(2), dp(1), dp(3));
+        params.setMargins(dp(1), dp(1), dp(1), dp(3));
         return params;
     }
 
@@ -1482,14 +1495,14 @@ public class MainActivity extends Activity {
     private FrameLayout.LayoutParams sideTabParams(int slot) {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 dp(24),
-                dp(104)
+                dp(92)
         );
         params.gravity = Gravity.RIGHT | Gravity.TOP;
         int screenHeight = getResources().getDisplayMetrics().heightPixels;
         int minTop = safeTopInset + dp(116);
-        int maxTop = Math.max(minTop, screenHeight - safeBottomInset - dp(216));
+        int maxTop = Math.max(minTop, screenHeight - safeBottomInset - dp(192));
         int receiverTop = Math.max(minTop, Math.min(safeTopInset + Math.round(screenHeight * 0.36f), maxTop));
-        params.setMargins(0, receiverTop + dp(112 * slot), 0, 0);
+        params.setMargins(0, receiverTop + dp(100 * slot), 0, 0);
         return params;
     }
 
