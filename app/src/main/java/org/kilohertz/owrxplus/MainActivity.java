@@ -527,7 +527,7 @@ public class MainActivity extends Activity {
             textPaint.setColor(0xFFD7F6FF);
             textPaint.setTextAlign(Paint.Align.CENTER);
             textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
-            textPaint.setTextSize(dp(9));
+            textPaint.setTextSize(dp(8));
             setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
 
@@ -953,14 +953,10 @@ public class MainActivity extends Activity {
     }
 
     private String mapPanelScript() {
-        return "var panel=document.getElementById('openwebrx-panel-map');"
-                + "var toggle=document.querySelector('[data-toggle-panel=\"openwebrx-panel-map\"]');"
-                + "function visible(el){if(!el){return false;}var s=getComputedStyle(el);return s.display!=='none'&&s.visibility!=='hidden'&&el.offsetParent!==null;}"
-                + "if(toggle){toggle.click();}"
-                + "else if(panel&&visible(panel)){panel.style.display='none';panel.style.pointerEvents='none';}"
-                + "else if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';panel.style.pointerEvents='auto';}"
-                + "setTimeout(function(){var p=document.getElementById('openwebrx-panel-map');if(p&&visible(p)){p.style.pointerEvents='auto';p.style.visibility='visible';}},80);"
-                + "console.log('SignalDeck MAP toggled='+(!!toggle));";
+        return "var link=document.querySelector('a[target=\"openwebrx-map\"],a[href=\"map\"],a[href$=\"/map\"]');"
+                + "var url=link?link.href:(new URL('map',location.href)).href;"
+                + "location.href=url;"
+                + "console.log('SignalDeck MAP open '+url);";
     }
 
     private String clickControlScript(String label) {
@@ -1212,7 +1208,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-waterfall-controls input[type=range]{width:100%!important;height:24px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;accent-color:#9feaff!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-value{text-align:right!important;color:#edf8ff!important;font:700 9px/18px monospace!important;}"
                 + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{display:none!important;}"
-                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;margin:8px 36px 10px 8px!important;padding:8px 8px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 36px)!important;max-width:calc(100vw - 36px)!important;margin:8px 28px 10px 8px!important;padding:8px 8px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-title{font:800 12px/16px sans-serif!important;color:#edf8ff!important;margin:0 0 7px!important;letter-spacing:.2px!important;}"
                 + ".signaldeck-skin .sd-decoder-grid{display:grid!important;gap:1px!important;background:rgba(159,234,255,.22)!important;border-radius:5px!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:repeat(var(--sd-cols),minmax(0,1fr))!important;gap:1px!important;min-width:0!important;}"
@@ -1220,15 +1216,17 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin .sd-decoder-row:first-child .sd-decoder-cell{font-weight:800!important;text-align:center!important;background:rgba(255,255,255,.92)!important;color:#16232c!important;}"
                 + ".signaldeck-skin .sd-decoder-empty{padding:12px!important;color:#9fb5c3!important;font:700 12px/16px sans-serif!important;text-align:center!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;margin:8px 36px 0 8px!important;padding:7px 9px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 11px/14px sans-serif!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 36px)!important;max-width:calc(100vw - 36px)!important;margin:8px 28px 0 8px!important;padding:7px 9px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 11px/14px sans-serif!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]+[data-signaldeck-decoder-output=true]{margin-top:0!important;border-radius:0 0 10px 10px!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 44px)!important;max-width:calc(100vw - 44px)!important;min-height:34vh!important;margin:8px 36px 12px 8px!important;padding:6px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:auto!important;left:auto!important;right:auto!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true]{width:calc(100vw - 36px)!important;max-width:calc(100vw - 36px)!important;min-height:34vh!important;margin:8px 28px 12px 8px!important;padding:6px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow-x:hidden!important;overflow-y:auto!important;left:auto!important;right:auto!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true] *{box-sizing:border-box!important;max-width:100%!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true] .nano,.signaldeck-skin [data-signaldeck-decoder-output=true] .nano-content{width:100%!important;max-width:100%!important;left:0!important;right:0!important;transform:none!important;overflow-x:hidden!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-output=true] canvas,.signaldeck-skin [data-signaldeck-decoder-output=true] img,.signaldeck-skin [data-signaldeck-decoder-output=true] video{max-width:100%!important;width:100%!important;height:auto!important;border-radius:8px!important;display:block!important;box-sizing:border-box!important;}"
                 + ".signaldeck-skin [data-signaldeck-media-decoder=true]{min-height:58vh!important;max-height:none!important;overflow:auto!important;background:rgba(2,18,38,.9)!important;}"
                 + ".signaldeck-skin [data-signaldeck-media-decoder=true] canvas,.signaldeck-skin [data-signaldeck-media-decoder=true] img{width:100%!important;max-width:none!important;height:auto!important;min-height:52vh!important;object-fit:contain!important;background:transparent!important;}"
                 + ".signaldeck-skin [data-signaldeck-media-titlebar=true]{position:relative!important;z-index:12!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-output=true] table:not([data-signaldeck-decoder-table=true]){width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font:12px/15px sans-serif!important;}"
-                + ".signaldeck-skin [data-signaldeck-decoder-output=true] th,.signaldeck-skin [data-signaldeck-decoder-output=true] td{padding:4px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true] table:not([data-signaldeck-decoder-table=true]){width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font:11px/14px sans-serif!important;}"
+                + ".signaldeck-skin [data-signaldeck-decoder-output=true] th,.signaldeck-skin [data-signaldeck-decoder-output=true] td{padding:4px 5px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver [data-signaldeck-hidden=true],.signaldeck-skin #openwebrx-panel-receiver [id*=settings],.signaldeck-skin #openwebrx-panel-receiver [id*=display],.signaldeck-skin #openwebrx-panel-receiver [class*=settings],.signaldeck-skin #openwebrx-panel-receiver [class*=display]{display:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-hint{transform:translateX(18px)!important;transition:transform .12s ease-out!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver.sd-swipe-up-hint{transform:translateY(-24px)!important;transition:transform .12s ease-out!important;}"
@@ -1494,15 +1492,15 @@ public class MainActivity extends Activity {
 
     private FrameLayout.LayoutParams sideTabParams(int slot) {
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                dp(24),
-                dp(92)
+                dp(20),
+                dp(86)
         );
         params.gravity = Gravity.RIGHT | Gravity.TOP;
         int screenHeight = getResources().getDisplayMetrics().heightPixels;
         int minTop = safeTopInset + dp(116);
-        int maxTop = Math.max(minTop, screenHeight - safeBottomInset - dp(192));
+        int maxTop = Math.max(minTop, screenHeight - safeBottomInset - dp(180));
         int receiverTop = Math.max(minTop, Math.min(safeTopInset + Math.round(screenHeight * 0.36f), maxTop));
-        params.setMargins(0, receiverTop + dp(100 * slot), 0, 0);
+        params.setMargins(0, receiverTop + dp(94 * slot), 0, 0);
         return params;
     }
 
