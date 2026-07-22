@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Changed
+
+- Restored the previous Receiver side-tab behavior instead of forcing it into the native Deck tab path.
+- Fax decoder output now gets a taller dedicated viewing area instead of the compact generic decoder-card treatment.
+- Receiver keeps extra bottom room below waterfall controls to avoid accidental slider touches.
+
 ### Added
 
 - Project documentation added: `PROJECT.md`, `ROADMAP.md`, architecture notes and GitHub templates.
