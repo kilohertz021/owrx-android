@@ -4,12 +4,11 @@
 
 ### Changed
 
-- MAP now opens the OpenWebRX map route in the current WebView instead of relying on a popup target.
+- Removed the MAP deck button after testing because it made the mobile flow bulky.
+- Decoded packet panels are aligned back to the same near-edge width as Receiver and Deck.
 - Receiver and Deck side tabs are thinner with tighter rotated labels.
 - Decoded tables are fixed in place inside their panel and no longer allow horizontal dragging.
 - Side-tab labels now use rotated text again, making the Receiver and Deck tabs more compact.
-- Decoded packet panels leave a right-side tab gutter and use tighter table cells for FT8/TPMS results.
-- MAP is back on the deck and OpenWebRX map panels are no longer hidden by the mobile skin.
 - Deck and Receiver side tabs now share one native drawing/positioning path while keeping separate panel behavior.
 - Receiver opening still uses the restored Receiver WebView panel flow instead of the reverted Deck-native path.
 - Fax and SSTV image decoder output now use a taller media viewer treatment instead of the compact packet-card styling.
