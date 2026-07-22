@@ -2,12 +2,6 @@
 
 ## Unreleased
 
-### Changed
-
-- Receiver and Deck side tabs now use the same native tab view, placement, and opening gesture.
-- Receiver no longer opens from any right-edge swipe; it opens from its tab and closes by swiping the panel.
-- Receiver waterfall controls now have extra bottom breathing room to avoid accidental slider touches while swiping.
-
 ### Added
 
 - Project documentation added: `PROJECT.md`, `ROADMAP.md`, architecture notes and GitHub templates.
