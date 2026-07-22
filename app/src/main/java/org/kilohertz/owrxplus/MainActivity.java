@@ -88,6 +88,7 @@ public class MainActivity extends Activity {
     private int statusLogTicks;
     private int safeTopInset;
     private int safeBottomInset;
+    private String lastFinishedDocumentUrl;
     private final StringBuilder debugLog = new StringBuilder();
     private final Runnable statusPoller = new Runnable() {
         @Override
@@ -190,6 +191,12 @@ public class MainActivity extends Activity {
                 if ("about:blank".equals(url)) {
                     return;
                 }
+                String documentUrl = stripFragment(url);
+                if (documentUrl.equals(lastFinishedDocumentUrl)) {
+                    injectSignalDeckSkin();
+                    return;
+                }
+                lastFinishedDocumentUrl = documentUrl;
                 logDebug("page finished " + url);
                 injectSignalDeckSkin();
                 logWebViewSnapshot("page-finished");
@@ -837,6 +844,7 @@ public class MainActivity extends Activity {
 
     private void loadReceiverUrl(final String url) {
         uiHandler.removeCallbacks(statusPoller);
+        lastFinishedDocumentUrl = null;
         logDebug("load receiver url=" + url);
         final WebView oldWebView = webView;
         WebView freshWebView = createConfiguredWebView();
@@ -1113,6 +1121,14 @@ public class MainActivity extends Activity {
         webView.evaluateJavascript("(function(){" + script + "})()", null);
     }
 
+    private String stripFragment(String url) {
+        if (url == null) {
+            return "";
+        }
+        int hash = url.indexOf('#');
+        return hash >= 0 ? url.substring(0, hash) : url;
+    }
+
     private void logDebug(String message) {
         String line = String.format(Locale.US, "%1$tH:%1$tM:%1$tS %2$s", new java.util.Date(), message);
         debugLog.append(line).append('\n');
@@ -1248,7 +1264,7 @@ public class MainActivity extends Activity {
                 + "function cellText(cell){return ((cell&&cell.textContent)||'').replace(/\\s+/g,' ').trim();}"
                 + "function decoderTableWanted(table){var text=((table.innerText||table.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();return /(freq\\s+text|id\\s+device|pressure_kpa|pressure kpa|temperature_c|temperature c|crc|tpms|packet|callsign|message|device)/.test(text);}"
                 + "function renderDecoderPanel(table){var rows=[];var maxCols=0;for(var r=0;r<table.rows.length&&rows.length<32;r++){var cells=[];for(var c=0;c<table.rows[r].cells.length&&c<4;c++){cells.push(cellText(table.rows[r].cells[c]));}while(cells.length&&cells[cells.length-1]===''){cells.pop();}if(!cells.length){continue;}maxCols=Math.max(maxCols,cells.length);rows.push(cells);}if(!rows.length){return false;}maxCols=Math.max(2,Math.min(4,maxCols));var sig=JSON.stringify(rows);if(table.getAttribute('data-signaldeck-decoder-sig')===sig&&table.previousElementSibling&&table.previousElementSibling.classList&&table.previousElementSibling.classList.contains('sd-decoder-panel')){return true;}table.setAttribute('data-signaldeck-decoder-sig',sig);if(table.previousElementSibling&&table.previousElementSibling.classList&&table.previousElementSibling.classList.contains('sd-decoder-panel')){table.previousElementSibling.remove();}var panel=document.createElement('div');panel.className='sd-decoder-panel';var title=document.createElement('div');title.className='sd-decoder-title';title.textContent='Decoded packets';panel.appendChild(title);var grid=document.createElement('div');grid.className='sd-decoder-grid';grid.style.setProperty('--sd-cols',String(maxCols));for(var i=0;i<rows.length;i++){var row=document.createElement('div');row.className='sd-decoder-row';row.style.setProperty('--sd-cols',String(maxCols));for(var j=0;j<maxCols;j++){var cell=document.createElement('div');cell.className='sd-decoder-cell';cell.textContent=rows[i][j]||'';row.appendChild(cell);}grid.appendChild(row);}panel.appendChild(grid);table.parentElement.insertBefore(panel,table);return true;}"
-                + "function markDecoderTables(){var tables=document.body?document.body.querySelectorAll('table'):[];var marked=0;for(var i=0;i<tables.length;i++){if(!decoderTableWanted(tables[i])){continue;}tables[i].setAttribute('data-signaldeck-decoder-table','true');var wrap=tables[i].parentElement;if(wrap){wrap.setAttribute('data-signaldeck-decoder-wrap','true');}if(renderDecoderPanel(tables[i])){marked++;}}if(marked){console.log('SignalDeck decoder panels='+marked);}}"
+                + "function markDecoderTables(){var tables=document.body?document.body.querySelectorAll('table'):[];for(var i=0;i<tables.length;i++){if(!decoderTableWanted(tables[i])){continue;}tables[i].setAttribute('data-signaldeck-decoder-table','true');var wrap=tables[i].parentElement;if(wrap){wrap.setAttribute('data-signaldeck-decoder-wrap','true');}renderDecoderPanel(tables[i]);}}"
                 + "function decoderPayload(el){return !!(el&&el.querySelector&&el.querySelector('img,video,canvas,table,.sd-decoder-panel'));}"
                 + "function badDecoderBox(el){var r=el.getBoundingClientRect();return !decoderPayload(el)||(r&&r.height<70);}"
                 + "function clearBadDecoderMarks(){var marked=document.querySelectorAll('[data-signaldeck-decoder-output=true]');for(var i=0;i<marked.length;i++){if(badDecoderBox(marked[i])){marked[i].removeAttribute('data-signaldeck-decoder-output');}}var bars=document.querySelectorAll('[data-signaldeck-decoder-titlebar=true]');for(var j=0;j<bars.length;j++){var n=bars[j].nextElementSibling;if(!n||!n.hasAttribute('data-signaldeck-decoder-output')){bars[j].removeAttribute('data-signaldeck-decoder-titlebar');}}}"
@@ -1257,8 +1273,8 @@ public class MainActivity extends Activity {
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function installReceiverSwipe(){if(window.__signalDeckReceiverSwipe){return;}window.__signalDeckReceiverSwipe=true;var sx=0,sy=0,fromRight=false,onPanel=false;document.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;fromRight=sx>window.innerWidth-34;onPanel=!!(e.target&&e.target.closest&&e.target.closest('#openwebrx-panel-receiver'));},{passive:true});document.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>90||Math.abs(dx)<70){return;}if(!receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&fromRight&&dx<-72){showReceiver();return;}if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&onPanel&&dx>72){hideReceiver();return;}},{passive:true});}"
 
-                + "hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(function(){markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();},1500);"
-                + "new MutationObserver(function(){hideForeignPanels();hideReceiverSections();tidyDigRow();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();}).observe(document.body,{childList:true,subtree:true});"
+                + "function refreshSignalDeckSkin(){hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();}function scheduleSignalDeckRefresh(){if(window.__signalDeckRefreshPending){return;}window.__signalDeckRefreshPending=true;setTimeout(function(){window.__signalDeckRefreshPending=false;refreshSignalDeckSkin();},250);}refreshSignalDeckSkin();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(refreshSignalDeckSkin,1500);"
+                + "new MutationObserver(scheduleSignalDeckRefresh).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }
 

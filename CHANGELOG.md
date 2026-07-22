@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Suppressed repeated hash-navigation diagnostics and debounced decoder DOM refreshes during tuning.
 - Removed the MAP deck button after testing because it made the mobile flow bulky.
 - Decoded packet panels are aligned back to the same near-edge width as Receiver and Deck.
 - Receiver and Deck side tabs are thinner with tighter rotated labels.
