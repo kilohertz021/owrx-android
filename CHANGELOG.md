@@ -4,6 +4,7 @@
 
 ### Changed
 
+- FT8/WSJT decoded packet cards now preserve the OpenWebRX Message/Text column instead of truncating tables to four columns.
 - Suppressed repeated hash-navigation diagnostics and debounced decoder DOM refreshes during tuning.
 - Removed the MAP deck button after testing because it made the mobile flow bulky.
 - Decoded packet panels are aligned back to the same near-edge width as Receiver and Deck.
