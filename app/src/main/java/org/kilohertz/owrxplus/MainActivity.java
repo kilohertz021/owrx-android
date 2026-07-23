@@ -78,6 +78,7 @@ public class MainActivity extends Activity {
     private EditText receiverSearch;
     private TuningKnobView tuningKnob;
     private View deckUtilityRail;
+    private View deckPowerButton;
     private View deckSideControls;
     private ReceiverCatalog receiverCatalog;
     private ReceiverInfo currentReceiver;
@@ -459,11 +460,18 @@ public class MainActivity extends Activity {
         leftParams.setMargins(0, 0, dp(6), 0);
         deck.addView(leftArea, leftParams);
 
+        deckPowerButton = createPowerButton();
+        RelativeLayout.LayoutParams powerParams = new RelativeLayout.LayoutParams(dp(36), dp(36));
+        powerParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        powerParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        powerParams.setMargins(0, dp(4), 0, 0);
+        leftArea.addView(deckPowerButton, powerParams);
+
         deckUtilityRail = createUtilityRail();
-        RelativeLayout.LayoutParams railParams = new RelativeLayout.LayoutParams(dp(38), RelativeLayout.LayoutParams.MATCH_PARENT);
+        RelativeLayout.LayoutParams railParams = new RelativeLayout.LayoutParams(dp(38), dp(154));
         railParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
         railParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        railParams.setMargins(0, dp(4), 0, dp(4));
+        railParams.setMargins(0, dp(48), 0, 0);
         leftArea.addView(deckUtilityRail, railParams);
 
         frequencyText = new TextView(this);
@@ -642,33 +650,69 @@ public class MainActivity extends Activity {
         }
     }
 
+    private class PowerButtonView extends View {
+        private final Paint powerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF powerArc = new RectF();
+
+        PowerButtonView(Activity context) {
+            super(context);
+            setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            setClickable(true);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            super.onDraw(canvas);
+            float w = getWidth();
+            float h = getHeight();
+            float cx = w / 2f;
+            float cy = h / 2f;
+            float scale = isPressed() ? 0.94f : 1f;
+            float radius = Math.min(w, h) * 0.31f * scale;
+            int glow = isPressed() ? 0xFF6FFFFF : 0xFF1EFFFF;
+            int core = isPressed() ? 0xFFE8FFFF : 0xFF23FFFF;
+
+            powerPaint.setStyle(Paint.Style.FILL);
+            powerPaint.setColor(0xAA07121B);
+            powerPaint.setShadowLayer(dp(8), 0, 0, 0xAA23FFFF);
+            canvas.drawCircle(cx, cy, Math.min(w, h) * 0.43f, powerPaint);
+            powerPaint.clearShadowLayer();
+
+            powerPaint.setStyle(Paint.Style.STROKE);
+            powerPaint.setStrokeWidth(dp(5));
+            powerPaint.setStrokeCap(Paint.Cap.ROUND);
+            powerPaint.setColor(glow);
+            powerPaint.setShadowLayer(dp(7), 0, 0, 0xFF23FFFF);
+            powerArc.set(cx - radius, cy - radius, cx + radius, cy + radius);
+            canvas.drawArc(powerArc, 132f, 276f, false, powerPaint);
+            canvas.drawLine(cx, cy - radius - dp(8), cx, cy - dp(2), powerPaint);
+
+            powerPaint.setShadowLayer(0, 0, 0, 0);
+            powerPaint.setColor(core);
+            powerPaint.setStrokeWidth(dp(4));
+            canvas.drawArc(powerArc, 132f, 276f, false, powerPaint);
+            canvas.drawLine(cx, cy - radius - dp(8), cx, cy - dp(2), powerPaint);
+        }
+    }
+
     private LinearLayout createUtilityRail() {
         LinearLayout rail = new LinearLayout(this);
         rail.setOrientation(LinearLayout.VERTICAL);
         rail.setGravity(Gravity.CENTER_HORIZONTAL);
-        rail.setPadding(dp(4), dp(4), dp(4), dp(4));
+        rail.setPadding(dp(4), dp(7), dp(4), dp(5));
         rail.setBackground(panelBackground(0x7710283A, dp(7), 0x668EDCFF));
-        rail.addView(createPowerButton(), new LinearLayout.LayoutParams(dp(28), dp(28)));
         View volume = createVolumeControl();
         LinearLayout.LayoutParams volumeParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 0,
                 1f
         );
-        volumeParams.setMargins(0, dp(6), 0, 0);
         rail.addView(volume, volumeParams);
         return rail;
     }
 
     private View createPowerButton() {
-        final TextView button = new TextView(this);
-        button.setText("\u23FB");
-        button.setTextColor(0xFFD7F6FF);
-        button.setTextSize(17);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setGravity(Gravity.CENTER);
-        button.setIncludeFontPadding(false);
-        button.setBackground(panelBackground(0xAA07121B, dp(14), 0xAA9FEAFF));
+        final View button = new PowerButtonView(this);
         button.setHapticFeedbackEnabled(true);
         button.setOnTouchListener(new View.OnTouchListener() {
             private final Runnable holdAction = new Runnable() {
@@ -778,9 +822,13 @@ public class MainActivity extends Activity {
 
     private void setDeckAuxControlsEnabled(boolean enabled) {
         setViewTreeEnabled(deckUtilityRail, enabled);
+        setViewTreeEnabled(deckPowerButton, enabled);
         setViewTreeEnabled(deckSideControls, enabled);
         if (deckUtilityRail != null) {
             deckUtilityRail.setAlpha(enabled ? 1f : 0.58f);
+        }
+        if (deckPowerButton != null) {
+            deckPowerButton.setAlpha(enabled ? 1f : 0.58f);
         }
         if (deckSideControls != null) {
             deckSideControls.setAlpha(enabled ? 1f : 0.58f);
@@ -1247,7 +1295,7 @@ public class MainActivity extends Activity {
                 + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function norm(el){return ((own(el)||el.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function hasToken(text){if(wanted==='vol'){return /(^|\\s)(vol|volume|audio|gain)(\\s|$)/.test(text);}return text.split(/\\s+/).indexOf(wanted)>=0;}"
-                + "function ranges(root){return root?root.querySelectorAll('input[type=range],input[type=number],input:not([type]),[role=slider]'):[];}"
+                + "function ranges(root){if(!root){return [];}var arr=[];if(root.matches&&root.matches('input[type=range],input[type=number],input:not([type]),[role=slider]')){arr.push(root);}var found=root.querySelectorAll?root.querySelectorAll('input[type=range],input[type=number],input:not([type]),[role=slider]'):[];for(var q=0;q<found.length;q++){arr.push(found[q]);}return arr;}"
                 + "function setHashParam(key,value){var raw=(location.hash||'').replace(/^#/,'');var parts=raw?raw.split(','):[];var found=false;for(var i=0;i<parts.length;i++){if(parts[i].split('=')[0]===key){parts[i]=key+'='+value;found=true;break;}}if(!found){parts.push(key+'='+value);}location.hash=parts.join(',');}"
                 + "if(wanted==='sq'){var sql=Math.round(-120+(pct*120/100));setHashParam('sql',sql);try{window.dispatchEvent(new HashChangeEvent('hashchange'));}catch(e){window.dispatchEvent(new Event('hashchange'));}console.log('SignalDeck range sq pct='+pct+' sql='+sql);}if(wanted==='vol'){window.__signalDeckVolume=pct;}"
                 + "var roots=[];"
@@ -1258,9 +1306,9 @@ public class MainActivity extends Activity {
                 + "for(var r=0;r<roots.length&&!target;r++){var panel=roots[r];if(!panel){continue;}var direct=ranges(panel);if(wanted==='nr'&&panel.id==='openwebrx-panel-nr'&&direct.length){target=direct[0];break;}if(wanted==='vol'&&panel.id==='openwebrx-panel-volume'&&direct.length){target=direct[0];break;}var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
                 + "for(var i=0;i<nodes.length&&!target;i++){var t=own(nodes[i]);if(!t){t=norm(nodes[i]);}if(hasToken(t)){base=nodes[i].closest('.openwebrx-panel-line')||nodes[i].parentElement||nodes[i];var rs=ranges(base);if(rs.length){target=rs[0];break;}var n=base.nextElementSibling;var guard=0;while(n&&guard++<4&&!target){var nt=norm(n);if(nt.indexOf('modes')>=0||nt.indexOf('settings')>=0||nt.indexOf('display')>=0){break;}rs=ranges(n);if(rs.length){target=rs[0];break;}n=n.nextElementSibling;}}}"
                 + "}"
-                + "if(target&&target.tagName&&target.tagName.toLowerCase()==='input'){var min=parseFloat(target.min);var max=parseFloat(target.max);if(isNaN(min)){min=0;}if(isNaN(max)||max===min){max=100;}var value=min+(max-min)*pct/100;target.value=value;target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' pct='+pct+' value='+value+' min='+min+' max='+max);}"
+                + "if(target&&target.tagName&&target.tagName.toLowerCase()==='input'){var min=parseFloat(target.min);var max=parseFloat(target.max);if(isNaN(min)){min=0;}if(isNaN(max)||max===min){max=100;}var value=min+(max-min)*pct/100;target.value=value;if(wanted==='vol'&&window.UI&&typeof UI.setVolume==='function'){UI.setVolume(value);}target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' pct='+pct+' value='+value+' min='+min+' max='+max);}"
                 + "else if(target){target.setAttribute('aria-valuenow',pct);target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' aria pct='+pct);}"
-                + "else if(wanted!=='sq'){console.log('SignalDeck range '+wanted+' target not found');}if(wanted==='vol'){var mv=pct/100;var media=document.querySelectorAll('audio,video');for(var m=0;m<media.length;m++){media[m].volume=mv;media[m].muted=pct===0;}console.log('SignalDeck app volume pct='+pct+' media='+media.length+' target='+(!!target));}";
+                + "else if(wanted!=='sq'){console.log('SignalDeck range '+wanted+' target not found');}if(wanted==='vol'){var mv=pct/100;if(!target&&window.UI&&typeof UI.setVolume==='function'){UI.setVolume(Math.round(pct*1.5));}var media=document.querySelectorAll('audio,video');for(var m=0;m<media.length;m++){media[m].volume=mv;media[m].muted=pct===0;}console.log('SignalDeck app volume pct='+pct+' media='+media.length+' target='+(!!target));}";
     }
 
     private Button receiverListButton() {
