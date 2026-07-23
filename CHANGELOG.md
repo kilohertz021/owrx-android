@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Matched decoder table surfaces to the card background so residual table frames disappear visually.
 - Removed remaining decoder table borders from native and SignalDeck-rendered packet tables.
 - Side-tab strokes now leave the screen-edge side open, and decoder tables are centered without internal grid borders.
 - Removed the remaining rounded screen-edge corners from side tabs and simplified decoder table grid lines.
