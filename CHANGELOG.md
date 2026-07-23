@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Mark empty decoded packet tables as decoder cards immediately so the placeholder state matches populated tables.
 - Removed the inner decoded packet card frame so table content sits directly on the outer decoded block.
 - Made the decoder header a single continuous strip by removing per-cell backgrounds that created seams.
 - Matched decoder table surfaces to the card background so residual table frames disappear visually.
