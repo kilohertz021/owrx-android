@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added a deck volume slider for app/OpenWebRX audio and a 3-second hold power-off control.
 - Kept the receiver panel above OpenWebRX banners and moved waterfall controls higher on receivers with large mode-button grids.
 - Mark empty decoded packet tables as decoder cards immediately so the placeholder state matches populated tables.
 - Removed the inner decoded packet card frame so table content sits directly on the outer decoded block.

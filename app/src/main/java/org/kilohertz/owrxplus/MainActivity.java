@@ -23,6 +23,7 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.webkit.ConsoleMessage;
@@ -76,11 +77,15 @@ public class MainActivity extends Activity {
     private LinearLayout receiverListView;
     private EditText receiverSearch;
     private TuningKnobView tuningKnob;
+    private View deckUtilityRail;
+    private View deckSideControls;
     private ReceiverCatalog receiverCatalog;
     private ReceiverInfo currentReceiver;
     private final List<ReceiverInfo> receivers = new ArrayList<ReceiverInfo>();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private boolean deckExpanded = true;
+    private boolean tuningGestureActive;
+    private int appVolumePercent = 75;
     private float globalTouchStartX;
     private float globalTouchStartY;
     private float deckTouchStartX;
@@ -126,6 +131,9 @@ public class MainActivity extends Activity {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
+        if (tuningGestureActive && event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
+            return true;
+        }
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             globalTouchStartX = event.getRawX();
             globalTouchStartY = event.getRawY();
@@ -440,6 +448,7 @@ public class MainActivity extends Activity {
                 mobileRangeControl("NR")
         );
         buttons.setId(View.generateViewId());
+        deckSideControls = buttons;
 
         RelativeLayout leftArea = new RelativeLayout(this);
         RelativeLayout.LayoutParams leftParams = new RelativeLayout.LayoutParams(
@@ -449,6 +458,13 @@ public class MainActivity extends Activity {
         leftParams.addRule(RelativeLayout.LEFT_OF, buttons.getId());
         leftParams.setMargins(0, 0, dp(6), 0);
         deck.addView(leftArea, leftParams);
+
+        deckUtilityRail = createUtilityRail();
+        RelativeLayout.LayoutParams railParams = new RelativeLayout.LayoutParams(dp(38), RelativeLayout.LayoutParams.MATCH_PARENT);
+        railParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        railParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+        railParams.setMargins(0, dp(4), 0, dp(4));
+        leftArea.addView(deckUtilityRail, railParams);
 
         frequencyText = new TextView(this);
         frequencyText.setText("Connecting");
@@ -462,7 +478,7 @@ public class MainActivity extends Activity {
                 dp(42)
         );
         frequencyParams.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-        frequencyParams.setMargins(dp(4), dp(12), dp(4), 0);
+        frequencyParams.setMargins(dp(44), dp(12), dp(4), 0);
         leftArea.addView(frequencyText, frequencyParams);
 
         tuningKnob = new TuningKnobView(this);
@@ -475,6 +491,16 @@ public class MainActivity extends Activity {
             @Override
             public void onCenterTap() {
                 cycleTuningStep();
+            }
+
+            @Override
+            public void onInteractionStart() {
+                setTuningGestureActive(true);
+            }
+
+            @Override
+            public void onInteractionEnd() {
+                setTuningGestureActive(false);
             }
         });
         RelativeLayout.LayoutParams knobParams = new RelativeLayout.LayoutParams(dp(178), dp(178));
@@ -616,6 +642,188 @@ public class MainActivity extends Activity {
         }
     }
 
+    private LinearLayout createUtilityRail() {
+        LinearLayout rail = new LinearLayout(this);
+        rail.setOrientation(LinearLayout.VERTICAL);
+        rail.setGravity(Gravity.CENTER_HORIZONTAL);
+        rail.setPadding(dp(4), dp(4), dp(4), dp(4));
+        rail.setBackground(panelBackground(0x7710283A, dp(7), 0x668EDCFF));
+        rail.addView(createPowerButton(), new LinearLayout.LayoutParams(dp(28), dp(28)));
+        View volume = createVolumeControl();
+        LinearLayout.LayoutParams volumeParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+        );
+        volumeParams.setMargins(0, dp(6), 0, 0);
+        rail.addView(volume, volumeParams);
+        return rail;
+    }
+
+    private View createPowerButton() {
+        final TextView button = new TextView(this);
+        button.setText("\u23FB");
+        button.setTextColor(0xFFD7F6FF);
+        button.setTextSize(17);
+        button.setTypeface(Typeface.DEFAULT_BOLD);
+        button.setGravity(Gravity.CENTER);
+        button.setIncludeFontPadding(false);
+        button.setBackground(panelBackground(0xAA07121B, dp(14), 0xAA9FEAFF));
+        button.setHapticFeedbackEnabled(true);
+        button.setOnTouchListener(new View.OnTouchListener() {
+            private final Runnable holdAction = new Runnable() {
+                @Override
+                public void run() {
+                    fired = true;
+                    requestPowerOff();
+                }
+            };
+            private boolean fired;
+            private float startX;
+            private float startY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (tuningGestureActive) {
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    fired = false;
+                    startX = event.getRawX();
+                    startY = event.getRawY();
+                    v.setPressed(true);
+                    v.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+                    uiHandler.postDelayed(holdAction, 3000);
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
+                    float dx = event.getRawX() - startX;
+                    float dy = event.getRawY() - startY;
+                    if (Math.sqrt(dx * dx + dy * dy) > dp(22)) {
+                        uiHandler.removeCallbacks(holdAction);
+                        v.setPressed(false);
+                    }
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    uiHandler.removeCallbacks(holdAction);
+                    v.setPressed(false);
+                    if (!fired) {
+                        Toast.makeText(MainActivity.this, "Hold power for 3 seconds", Toast.LENGTH_SHORT).show();
+                    }
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_CANCEL) {
+                    uiHandler.removeCallbacks(holdAction);
+                    v.setPressed(false);
+                    return true;
+                }
+                return true;
+            }
+        });
+        return button;
+    }
+
+    private View createVolumeControl() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
+
+        FrameLayout sliderBox = new FrameLayout(this);
+        final SeekBar seekBar = new SeekBar(this);
+        seekBar.setMax(100);
+        seekBar.setProgress(appVolumePercent);
+        seekBar.setPadding(0, 0, 0, 0);
+        seekBar.setRotation(-90f);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser && !tuningGestureActive) {
+                    appVolumePercent = progress;
+                    setReceiverRange("VOL", progress);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                if (!tuningGestureActive) {
+                    appVolumePercent = seekBar.getProgress();
+                    setReceiverRange("VOL", appVolumePercent);
+                }
+            }
+        });
+        FrameLayout.LayoutParams seekParams = new FrameLayout.LayoutParams(dp(112), dp(30), Gravity.CENTER);
+        sliderBox.addView(seekBar, seekParams);
+        box.addView(sliderBox, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        TextView label = new TextView(this);
+        label.setText("VOL");
+        label.setTextColor(COLOR_TEXT_ICE);
+        label.setTextSize(9);
+        label.setTypeface(Typeface.DEFAULT_BOLD);
+        label.setGravity(Gravity.CENTER);
+        label.setIncludeFontPadding(false);
+        box.addView(label, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(18)));
+        return box;
+    }
+
+    private void setTuningGestureActive(boolean active) {
+        tuningGestureActive = active;
+        setDeckAuxControlsEnabled(!active);
+    }
+
+    private void setDeckAuxControlsEnabled(boolean enabled) {
+        setViewTreeEnabled(deckUtilityRail, enabled);
+        setViewTreeEnabled(deckSideControls, enabled);
+        if (deckUtilityRail != null) {
+            deckUtilityRail.setAlpha(enabled ? 1f : 0.58f);
+        }
+        if (deckSideControls != null) {
+            deckSideControls.setAlpha(enabled ? 1f : 0.58f);
+        }
+    }
+
+    private void setViewTreeEnabled(View view, boolean enabled) {
+        if (view == null) {
+            return;
+        }
+        view.setEnabled(enabled);
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                setViewTreeEnabled(group.getChildAt(i), enabled);
+            }
+        }
+    }
+
+    private void requestPowerOff() {
+        logDebug("power off requested from deck");
+        Toast.makeText(this, "SignalDeck power off", Toast.LENGTH_SHORT).show();
+        uiHandler.removeCallbacks(statusPoller);
+        stopService(new Intent(this, PlaybackKeepAliveService.class));
+        if (webView != null) {
+            webView.stopLoading();
+            webView.loadUrl("about:blank");
+            webView.onPause();
+            webView.pauseTimers();
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            finishAndRemoveTask();
+        } else {
+            finish();
+        }
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                android.os.Process.killProcess(android.os.Process.myPid());
+                System.exit(0);
+            }
+        }, 350);
+    }
     private LinearLayout sideColumn(View... controls) {
         LinearLayout column = new LinearLayout(this);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -1038,21 +1246,21 @@ public class MainActivity extends Activity {
         return "var wanted='" + wanted + "';var pct=" + safePercent + ";"
                 + "function own(el){var out='';for(var i=0;i<el.childNodes.length;i++){if(el.childNodes[i].nodeType===3){out+=el.childNodes[i].nodeValue+' ';}}return out.replace(/\\s+/g,' ').trim().toLowerCase();}"
                 + "function norm(el){return ((own(el)||el.textContent||'')+'').replace(/\\s+/g,' ').trim().toLowerCase();}"
-                + "function hasToken(text){return text.split(/\\s+/).indexOf(wanted)>=0;}"
+                + "function hasToken(text){if(wanted==='vol'){return /(^|\\s)(vol|volume|audio|gain)(\\s|$)/.test(text);}return text.split(/\\s+/).indexOf(wanted)>=0;}"
                 + "function ranges(root){return root?root.querySelectorAll('input[type=range],input[type=number],input:not([type]),[role=slider]'):[];}"
                 + "function setHashParam(key,value){var raw=(location.hash||'').replace(/^#/,'');var parts=raw?raw.split(','):[];var found=false;for(var i=0;i<parts.length;i++){if(parts[i].split('=')[0]===key){parts[i]=key+'='+value;found=true;break;}}if(!found){parts.push(key+'='+value);}location.hash=parts.join(',');}"
-                + "if(wanted==='sq'){var sql=Math.round(-120+(pct*120/100));setHashParam('sql',sql);try{window.dispatchEvent(new HashChangeEvent('hashchange'));}catch(e){window.dispatchEvent(new Event('hashchange'));}console.log('SignalDeck range sq pct='+pct+' sql='+sql);}"
+                + "if(wanted==='sq'){var sql=Math.round(-120+(pct*120/100));setHashParam('sql',sql);try{window.dispatchEvent(new HashChangeEvent('hashchange'));}catch(e){window.dispatchEvent(new Event('hashchange'));}console.log('SignalDeck range sq pct='+pct+' sql='+sql);}if(wanted==='vol'){window.__signalDeckVolume=pct;}"
                 + "var roots=[];"
-                + "if(wanted==='nr'){roots.push(document.getElementById('openwebrx-panel-nr'));roots.push(document.querySelector('[id*=\"nr\" i]'));}"
+                + "if(wanted==='nr'){roots.push(document.getElementById('openwebrx-panel-nr'));roots.push(document.querySelector('[id*=\"nr\" i]'));}if(wanted==='vol'){roots.push(document.getElementById('openwebrx-panel-volume'));roots.push(document.querySelector('[id*=\"volume\" i]'));}"
                 + "if(wanted==='sq'){roots.push(document.getElementById('openwebrx-panel-receiver'));roots.push(document.getElementById('openwebrx-panel-volume'));}"
                 + "roots.push(document.getElementById('openwebrx-panel-receiver'));roots.push(document);"
                 + "var target=null;var base=null;"
-                + "for(var r=0;r<roots.length&&!target;r++){var panel=roots[r];if(!panel){continue;}var direct=ranges(panel);if(wanted==='nr'&&panel.id==='openwebrx-panel-nr'&&direct.length){target=direct[0];break;}var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
+                + "for(var r=0;r<roots.length&&!target;r++){var panel=roots[r];if(!panel){continue;}var direct=ranges(panel);if(wanted==='nr'&&panel.id==='openwebrx-panel-nr'&&direct.length){target=direct[0];break;}if(wanted==='vol'&&panel.id==='openwebrx-panel-volume'&&direct.length){target=direct[0];break;}var nodes=panel.querySelectorAll('.openwebrx-panel-line,button,.openwebrx-button,label,span,div');"
                 + "for(var i=0;i<nodes.length&&!target;i++){var t=own(nodes[i]);if(!t){t=norm(nodes[i]);}if(hasToken(t)){base=nodes[i].closest('.openwebrx-panel-line')||nodes[i].parentElement||nodes[i];var rs=ranges(base);if(rs.length){target=rs[0];break;}var n=base.nextElementSibling;var guard=0;while(n&&guard++<4&&!target){var nt=norm(n);if(nt.indexOf('modes')>=0||nt.indexOf('settings')>=0||nt.indexOf('display')>=0){break;}rs=ranges(n);if(rs.length){target=rs[0];break;}n=n.nextElementSibling;}}}"
                 + "}"
                 + "if(target&&target.tagName&&target.tagName.toLowerCase()==='input'){var min=parseFloat(target.min);var max=parseFloat(target.max);if(isNaN(min)){min=0;}if(isNaN(max)||max===min){max=100;}var value=min+(max-min)*pct/100;target.value=value;target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' pct='+pct+' value='+value+' min='+min+' max='+max);}"
                 + "else if(target){target.setAttribute('aria-valuenow',pct);target.dispatchEvent(new Event('input',{bubbles:true}));target.dispatchEvent(new Event('change',{bubbles:true}));console.log('SignalDeck range '+wanted+' aria pct='+pct);}"
-                + "else if(wanted!=='sq'){console.log('SignalDeck range '+wanted+' target not found');}";
+                + "else if(wanted!=='sq'){console.log('SignalDeck range '+wanted+' target not found');}if(wanted==='vol'){var mv=pct/100;var media=document.querySelectorAll('audio,video');for(var m=0;m<media.length;m++){media[m].volume=mv;media[m].muted=pct===0;}console.log('SignalDeck app volume pct='+pct+' media='+media.length+' target='+(!!target));}";
     }
 
     private Button receiverListButton() {
@@ -1236,6 +1444,12 @@ public class MainActivity extends Activity {
         }
 
         webView.evaluateJavascript(signalDeckSkinScriptV2(), null);
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                setReceiverRange("VOL", appVolumePercent);
+            }
+        }, 350);
     }
 
     private String signalDeckSkinScriptV2() {

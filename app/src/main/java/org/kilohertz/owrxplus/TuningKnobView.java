@@ -31,6 +31,10 @@ public class TuningKnobView extends View {
         void onTick(int direction);
 
         void onCenterTap();
+
+        void onInteractionStart();
+
+        void onInteractionEnd();
     }
 
     public TuningKnobView(Context context) {
@@ -236,6 +240,9 @@ public class TuningKnobView extends View {
                 touchDownTime = SystemClock.uptimeMillis();
                 lastAngle = angleFor(x, y);
                 accumulator = 0;
+                if (listener != null) {
+                    listener.onInteractionStart();
+                }
                 return true;
             case MotionEvent.ACTION_MOVE:
                 float angle = angleFor(x, y);
@@ -260,6 +267,14 @@ public class TuningKnobView extends View {
                 if (shortTap && smallMove && center && listener != null) {
                     performClick();
                     listener.onCenterTap();
+                }
+                if (listener != null) {
+                    listener.onInteractionEnd();
+                }
+                return true;
+            case MotionEvent.ACTION_CANCEL:
+                if (listener != null) {
+                    listener.onInteractionEnd();
                 }
                 return true;
             default:
