@@ -567,6 +567,7 @@ public class MainActivity extends Activity {
         private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
         private final Path tabPath = new Path();
+        private final Path tabStrokePath = new Path();
         private final String label;
 
         SideTabView(Activity context, String label) {
@@ -596,8 +597,15 @@ public class MainActivity extends Activity {
             tabPath.quadTo(rect.left, rect.bottom, rect.left + radius, rect.bottom);
             tabPath.lineTo(rect.right, rect.bottom);
             tabPath.close();
+            tabStrokePath.reset();
+            tabStrokePath.moveTo(rect.right, rect.top);
+            tabStrokePath.lineTo(rect.left + radius, rect.top);
+            tabStrokePath.quadTo(rect.left, rect.top, rect.left, rect.top + radius);
+            tabStrokePath.lineTo(rect.left, rect.bottom - radius);
+            tabStrokePath.quadTo(rect.left, rect.bottom, rect.left + radius, rect.bottom);
+            tabStrokePath.lineTo(rect.right, rect.bottom);
             canvas.drawPath(tabPath, fillPaint);
-            canvas.drawPath(tabPath, strokePaint);
+            canvas.drawPath(tabStrokePath, strokePaint);
             float cx = getWidth() / 2f;
             float cy = getHeight() / 2f;
             canvas.save();
@@ -1275,10 +1283,10 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{display:none!important;}"
                 + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;padding:8px 10px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-title{font:800 12px/16px sans-serif!important;color:#edf8ff!important;margin:0 0 7px!important;letter-spacing:.2px!important;}"
-                + ".signaldeck-skin .sd-decoder-grid{display:grid!important;gap:0!important;background:transparent!important;border-radius:5px!important;overflow:hidden!important;}"
-                + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:var(--sd-grid,repeat(var(--sd-cols),minmax(0,1fr)))!important;gap:0!important;min-width:0!important;border-bottom:1px solid rgba(159,234,255,.16)!important;}"
-                + ".signaldeck-skin .sd-decoder-cell{min-width:0!important;padding:4px 6px!important;background:rgba(5,13,21,.35)!important;color:#edf8ff!important;font:11px/14px sans-serif!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
-                + ".signaldeck-skin .sd-decoder-row:first-child .sd-decoder-cell{font-weight:800!important;text-align:center!important;background:rgba(255,255,255,.92)!important;color:#16232c!important;}.signaldeck-skin .sd-decoder-row:last-child{border-bottom:0!important;}"
+                + ".signaldeck-skin .sd-decoder-grid{display:grid!important;width:calc(100% - 8px)!important;margin:0 auto!important;gap:0!important;background:transparent!important;border-radius:5px!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:var(--sd-grid,repeat(var(--sd-cols),minmax(0,1fr)))!important;gap:0!important;min-width:0!important;background:rgba(5,13,21,.35)!important;}"
+                + ".signaldeck-skin .sd-decoder-cell{min-width:0!important;padding:4px 6px!important;background:transparent!important;color:#edf8ff!important;font:11px/14px sans-serif!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;}"
+                + ".signaldeck-skin .sd-decoder-row:first-child{background:rgba(255,255,255,.92)!important;}.signaldeck-skin .sd-decoder-row:first-child .sd-decoder-cell{font-weight:800!important;text-align:center!important;background:transparent!important;color:#16232c!important;}"
                 + ".signaldeck-skin .sd-decoder-empty{padding:12px!important;color:#9fb5c3!important;font:700 12px/16px sans-serif!important;text-align:center!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-wrap=true]{overflow:visible!important;background:transparent!important;border:0!important;box-shadow:none!important;}"
                 + ".signaldeck-skin [data-signaldeck-decoder-titlebar=true]{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 0!important;padding:7px 9px!important;box-sizing:border-box!important;border-radius:10px 10px 0 0!important;border:1px solid rgba(159,234,255,.34)!important;border-bottom:0!important;background:rgba(0,62,72,.94)!important;color:#edf8ff!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 8px 18px rgba(0,0,0,.25)!important;overflow:hidden!important;left:auto!important;right:auto!important;font:800 11px/14px sans-serif!important;}"
