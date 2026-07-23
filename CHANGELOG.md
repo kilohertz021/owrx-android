@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Removed the remaining rounded screen-edge corners from side tabs and simplified decoder table grid lines.
 - Added compact >>> close hints to Deck and Receiver, squared side-tab screen edges, and centered decoder card padding.
 - FT8/WSJT decoded packet cards now preserve the OpenWebRX Message/Text column instead of truncating tables to four columns.
 - Suppressed repeated hash-navigation diagnostics and debounced decoder DOM refreshes during tuning.
