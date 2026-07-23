@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Kept the receiver panel above OpenWebRX banners and moved waterfall controls higher on receivers with large mode-button grids.
 - Mark empty decoded packet tables as decoder cards immediately so the placeholder state matches populated tables.
 - Removed the inner decoded packet card frame so table content sits directly on the outer decoded block.
 - Made the decoder header a single continuous strip by removing per-cell backgrounds that created seams.
