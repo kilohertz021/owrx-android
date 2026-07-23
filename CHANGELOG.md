@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No pending changes.
+
+## v0.1.26 - 2026-07-23
+
 ### Changed
 
 - Redrew the deck power button in the restrained SignalDeck panel style instead of the bright reference-image look.

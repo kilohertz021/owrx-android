@@ -1,69 +1,81 @@
 # SignalDeck Android
 
-SignalDeck is an experimental Android app for listening to OpenWebRX-compatible SDR receivers.
+SignalDeck is a mobile Android client for OpenWebRX-compatible SDR receivers. It keeps the live OpenWebRX waterfall and audio engine, then adds a phone-friendly control deck for tuning, receiver selection, zoom, squelch, noise reduction, app volume, and decoder output.
 
-It opens `kilohertz_sdr` by default, shows the waterfall and current frequency, and adds a mobile-friendly control deck with a rotary `TUNE` knob, receiver mode selection, zoom controls, and a searchable SDR list.
+SignalDeck is independent software. It is not an official OpenWebRX or OpenWebRX+ Android app.
 
-## Current Test APK
+## Download
 
-Latest published APK:
+Latest APK:
 
 ```text
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-Current source version:
+Current public test version:
 
 ```text
-0.1.3
+0.1.26
 ```
 
-The `0.1.3` APK is published as a debug/test build for direct sharing. It is not a Google Play release.
+Versioned APK:
 
-## Features
+```text
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.26-82f0459.apk
+```
 
-- opens OpenWebRX-compatible SDR receivers;
-- shows the receiver waterfall and frequency scale;
-- provides a rotary `TUNE` control for frequency changes;
-- changes tuning step with a center tap on the knob;
-- opens receiver modes through the right-side `Receiver` tab;
-- hides and restores the native control deck through the right-side `Deck` tab;
-- opens the SDR directory through `SDRs`;
-- loads OpenWebRX receiver entries from `rx-tx.info`;
-- keeps `kilohertz_sdr` pinned at the top of the SDR list;
-- provides mobile SQ/NR sliders and waterfall level controls;
-- respects camera cutouts, rounded screen corners, and Android navigation areas.
+This is a direct APK test build, not a Google Play release. Android may ask you to allow installation from the browser, Telegram, or your file manager.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/signaldeck-deck.png" alt="SignalDeck main deck" width="260">
+  <img src="docs/images/signaldeck-receiver.png" alt="SignalDeck receiver panel" width="260">
+  <img src="docs/images/signaldeck-sdr-list.png" alt="SignalDeck SDR receiver list" width="260">
+</p>
+
+## What It Does
+
+- Opens `kilohertz_sdr` by default and supports other compatible OpenWebRX receiver pages.
+- Shows the original receiver waterfall, band labels, and decoded signal output.
+- Adds a native mobile deck with a rotary `TUNE` knob and selectable tuning step.
+- Provides `SDRs`, `Zoom +`, `Zoom -`, `SQ`, `NR`, and `VOL` controls.
+- Uses a 3-second hold on the power button to fully exit the app.
+- Opens receiver modes and waterfall levels from the right-side `Receiver` tab.
+- Loads public receiver entries from `rx-tx.info`, with `kilohertz_sdr` pinned at the top.
+- Preserves OpenWebRX decoder tables, including FT8/WSJT message text when exposed by the server.
+- Respects camera cutouts, rounded screen corners, and Android navigation areas.
 
 ## Installation
 
-This is a test build and is not distributed through Google Play yet.
-
-If someone sends you the APK file:
-
-1. Download the APK on your Android phone.
+1. Download the latest APK on your Android phone.
 2. Open the downloaded file.
-3. If Android asks to allow installation from this source, allow it for Telegram, your browser, or your file manager.
+3. If Android asks to allow installation from this source, allow it for your browser, Telegram, or file manager.
 4. Tap `Install`.
 5. Open `SignalDeck`.
 
-Android warnings about installing apps outside Google Play are normal for test APK builds.
-
 ## Basic Use
 
-- `TUNE` - rotate the knob with your finger to change frequency.
-- Center tap on `TUNE` - change the tuning step.
-- `Receiver` - open receiver modes such as `FM`, `AM`, `USB`, `LSB`, `CW`, and others.
-- `SDRs` - open the receiver list.
-- `Zoom +` / `Zoom -` - zoom the waterfall in or out.
-- Green/yellow labels on the frequency scale are OpenWebRX bandplan/skimmer hints.
+- Rotate `TUNE` to change frequency.
+- Tap the center of `TUNE` to change the tuning step.
+- Tap `SDRs` to choose another receiver.
+- Use `VOL` to adjust app/OpenWebRX audio independently from the phone volume.
+- Hold the power button for 3 seconds to close the app completely.
+- Open `Receiver` from the right-side tab to change modes, DIG decoder, or waterfall levels.
+- Swipe the Deck or Receiver panel right from its `>>>` area to hide it.
 
-Not every public SDR in the list is stable. Some receivers may be offline, overloaded, incompatible, or may not expose usable receiver state. In that case SignalDeck may show `No data`.
+Public SDR receivers vary. Some may be offline, overloaded, incompatible, or missing receiver state that SignalDeck can control.
 
-## Why This Repository Is Public
+## Documentation
 
-This repository is public so users can inspect the source code and verify what the APK is doing.
-
-SignalDeck is an independent Android client for OpenWebRX-compatible receivers. It is not an official OpenWebRX app and is not a copy of any commercial Android SDR client.
+- [User manual](USER_MANUAL.md)
+- [Project notes](PROJECT.md)
+- [Roadmap](ROADMAP.md)
+- [Install notes](docs/install.md)
+- [Background playback](docs/background-playback.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [Release process](docs/release.md)
+- [Public positioning](docs/public-positioning.md)
 
 ## Developer Notes
 
@@ -80,24 +92,6 @@ Debug APK output:
 ```text
 app/build/outputs/apk/debug/app-debug.apk
 ```
-
-More documentation:
-
-- [PROJECT.md](PROJECT.md)
-- [ROADMAP.md](ROADMAP.md)
-- [USER_MANUAL.md](USER_MANUAL.md)
-- [docs/build.md](docs/build.md)
-- [docs/install.md](docs/install.md)
-- [docs/background-playback.md](docs/background-playback.md)
-- [docs/troubleshooting.md](docs/troubleshooting.md)
-- [docs/release.md](docs/release.md)
-- [docs/public-positioning.md](docs/public-positioning.md)
-
-## Status
-
-Experimental test version. The main use case is mobile access to `kilohertz_sdr` and other OpenWebRX-compatible receivers.
-
-Background playback is currently best-effort because Android may throttle WebView JavaScript/WebSocket activity when the app is sent to the background.
 
 ## License
 

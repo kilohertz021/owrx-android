@@ -1,16 +1,16 @@
 # SignalDeck User Manual
 
-SignalDeck is an Android client for OpenWebRX-compatible SDR receivers. It is currently a test APK, not a Google Play release.
+SignalDeck is an Android client for OpenWebRX-compatible SDR receivers. It opens the receiver page, keeps the live waterfall/audio, and adds a mobile control deck for common phone actions.
 
 ## Download
 
-Use the latest published APK:
+Latest APK:
 
 ```text
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-Current published test version: `0.1.3`.
+Current public test version: `0.1.26`.
 
 ## Install
 
@@ -20,47 +20,49 @@ Current published test version: `0.1.3`.
 4. Tap `Install`.
 5. Open `SignalDeck`.
 
-Android may warn that the app was not installed from Google Play. That is normal for a test APK.
+Android may warn that the app was not installed from Google Play. That is normal for a direct APK test build.
 
 ## Main Screen
 
-The app opens `kilohertz_sdr` by default. You will see the OpenWebRX waterfall, band labels, receiver frequency, and the SignalDeck control deck.
+The app opens `kilohertz_sdr` by default. The top area is the OpenWebRX receiver view with waterfall, frequency scale, and band labels. The SignalDeck panel sits over the lower part of the screen and contains the main mobile controls.
 
-## Tuning
+![SignalDeck main deck](docs/images/signaldeck-deck.png)
 
-- Rotate the `TUNE` knob to change frequency.
-- Tap the center of the knob to change the tuning step.
-- The default tuning step is `1 kHz`.
+## Deck Controls
+
+- `TUNE`: rotate the knob with your finger to change frequency.
+- Center tap on `TUNE`: change the tuning step.
+- `SDRs`: open the public receiver list.
+- `Zoom +` / `Zoom -`: zoom the waterfall in or out.
+- `SQ`: adjust squelch when the current receiver exposes compatible controls.
+- `NR`: adjust noise reduction when the current receiver exposes compatible controls.
+- `VOL`: adjust app/OpenWebRX audio independently from the phone volume.
+- Power button: hold for 3 seconds to close SignalDeck completely.
+
+While the tuning knob is being rotated, nearby controls are temporarily guarded from accidental touches.
+
+Swipe the deck to the right from the `>>>` area to hide it. Use the right-side `Deck` tab to bring it back.
 
 ## Receiver Panel
 
-Use the right-side `Receiver` tab to open the receiver controls.
+Use the right-side `Receiver` tab to open receiver controls.
 
-The receiver panel contains:
+![SignalDeck receiver panel](docs/images/signaldeck-receiver.png)
 
-- mode buttons such as `FM`, `WFM`, `AM`, `LSB`, `USB`, `CW`, `DATA`, `DRM`, `DAB`, and `HDR`;
-- the `DIG` decoder selector;
-- waterfall level controls when the current OpenWebRX page exposes compatible controls.
+The receiver panel can include:
 
-Swipe the receiver panel to the right to close it.
+- receiver/source selector;
+- mode buttons such as `FM`, `WFM`, `AM`, `LSB`, `USB`, `CW`, `SAM`, `DATA`, `DRM`, `DAB`, and `HDR`;
+- `DIG` decoder selector;
+- waterfall level controls.
 
-## Deck Panel
-
-The SignalDeck deck contains:
-
-- live receiver/frequency information;
-- the `TUNE` knob;
-- `SDRs`;
-- `Zoom +`;
-- `Zoom -`;
-- `SQ`;
-- `NR`.
-
-Swipe the deck to the right to hide it. Use the right-side `Deck` tab to bring it back.
+Swipe the receiver panel to the right from the `>>>` area to close it.
 
 ## SDR List
 
 Tap `SDRs` to open the receiver list.
+
+![SignalDeck SDR receiver list](docs/images/signaldeck-sdr-list.png)
 
 The list is loaded from:
 
@@ -72,24 +74,28 @@ https://rx-tx.info/map-sdr-points
 
 ## Decoder Results
 
-OpenWebRX decoder output, such as skimmer, ISM, TPMS, FAX, or SSTV panels, is still rendered by the OpenWebRX page. SignalDeck lightly styles decoder tables when they are present, but it does not create decoded packets itself.
+OpenWebRX decoder output, such as FT8/WSJT, skimmer, ISM, TPMS, FAX, or SSTV panels, is still produced by the receiver page. SignalDeck only adapts the display for mobile.
 
-If the waterfall shows signals but the results table is empty, either the selected decoder did not decode anything yet, the selected mode is not appropriate for the signal, or the remote receiver did not expose decoder output in the page.
+For FT8/WSJT-style tables, SignalDeck keeps the important OpenWebRX fields visible, including message text when the server exposes it.
+
+If the results table is empty, wait for the next decode cycle or check that the selected mode and signal match the decoder.
 
 ## Troubleshooting
 
 If there is no audio:
 
-- check phone volume;
+- raise the phone volume;
+- check `VOL` in the SignalDeck deck;
 - check Bluetooth routing;
 - try another OpenWebRX mode;
 - return to `kilohertz_sdr`;
 - choose another SDR from `SDRs`.
 
-If the screen is blank or white after switching receivers:
+If a public receiver opens with a blank or broken screen:
 
 - wait a few seconds;
+- choose another SDR;
 - return to `kilohertz_sdr`;
-- restart the app if the remote receiver left WebView in a broken state.
+- restart the app if the remote receiver left WebView in a bad state.
 
-For debug logs, long-press the SignalDeck title in the deck. The recent WebView diagnostics are copied to the clipboard.
+For debug logs, long-press the SignalDeck title in the deck. Recent WebView diagnostics are copied to the clipboard.

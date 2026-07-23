@@ -6,7 +6,7 @@ SignalDeck is a mobile-first Android client for OpenWebRX-compatible SDR receive
 
 ## Current Status
 
-Status: experimental public test build.
+Status: public Android APK test build.
 
 Latest published APK:
 
@@ -14,10 +14,16 @@ Latest published APK:
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-Current source version:
+Current public version:
 
 ```text
-0.1.3
+0.1.26
+```
+
+Versioned APK:
+
+```text
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.26-82f0459.apk
 ```
 
 Repository:
@@ -43,6 +49,7 @@ In scope:
 - Mobile tuning deck with rotary encoder.
 - Receiver list loaded from `rx-tx.info`.
 - Receiver/mode controls optimized for phones.
+- App/OpenWebRX volume control and guarded power-off.
 - Basic styling and layout cleanup over OpenWebRX pages.
 - Debug APK publishing for testers.
 
