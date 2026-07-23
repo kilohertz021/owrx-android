@@ -667,31 +667,34 @@ public class MainActivity extends Activity {
             float h = getHeight();
             float cx = w / 2f;
             float cy = h / 2f;
-            float scale = isPressed() ? 0.94f : 1f;
-            float radius = Math.min(w, h) * 0.31f * scale;
-            int glow = isPressed() ? 0xFF6FFFFF : 0xFF1EFFFF;
-            int core = isPressed() ? 0xFFE8FFFF : 0xFF23FFFF;
+            float pressed = isPressed() ? 1f : 0f;
+            float radius = Math.min(w, h) * (0.28f - pressed * 0.02f);
 
             powerPaint.setStyle(Paint.Style.FILL);
-            powerPaint.setColor(0xAA07121B);
-            powerPaint.setShadowLayer(dp(8), 0, 0, 0xAA23FFFF);
+            powerPaint.setShader(new android.graphics.RadialGradient(
+                    cx,
+                    cy,
+                    Math.min(w, h) * 0.52f,
+                    new int[]{0x6610283A, 0xDD07121B, 0xF207121B},
+                    new float[]{0f, 0.68f, 1f},
+                    android.graphics.Shader.TileMode.CLAMP
+            ));
             canvas.drawCircle(cx, cy, Math.min(w, h) * 0.43f, powerPaint);
-            powerPaint.clearShadowLayer();
+            powerPaint.setShader(null);
 
             powerPaint.setStyle(Paint.Style.STROKE);
-            powerPaint.setStrokeWidth(dp(5));
             powerPaint.setStrokeCap(Paint.Cap.ROUND);
-            powerPaint.setColor(glow);
-            powerPaint.setShadowLayer(dp(7), 0, 0, 0xFF23FFFF);
-            powerArc.set(cx - radius, cy - radius, cx + radius, cy + radius);
-            canvas.drawArc(powerArc, 132f, 276f, false, powerPaint);
-            canvas.drawLine(cx, cy - radius - dp(8), cx, cy - dp(2), powerPaint);
+            powerPaint.setStrokeWidth(dp(1));
+            powerPaint.setColor(isPressed() ? 0xDDCFFFFF : 0xAA8EDCFF);
+            canvas.drawCircle(cx, cy, Math.min(w, h) * 0.42f, powerPaint);
 
-            powerPaint.setShadowLayer(0, 0, 0, 0);
-            powerPaint.setColor(core);
-            powerPaint.setStrokeWidth(dp(4));
-            canvas.drawArc(powerArc, 132f, 276f, false, powerPaint);
-            canvas.drawLine(cx, cy - radius - dp(8), cx, cy - dp(2), powerPaint);
+            powerPaint.setStrokeWidth(dp(3));
+            powerPaint.setColor(isPressed() ? 0xFFE2FFFF : 0xDD9FEAFF);
+            powerPaint.setShadowLayer(isPressed() ? dp(5) : dp(3), 0, 0, 0x889FEAFF);
+            powerArc.set(cx - radius, cy - radius, cx + radius, cy + radius);
+            canvas.drawArc(powerArc, 134f, 272f, false, powerPaint);
+            canvas.drawLine(cx, cy - radius - dp(5), cx, cy - dp(2), powerPaint);
+            powerPaint.clearShadowLayer();
         }
     }
 
