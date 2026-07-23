@@ -352,10 +352,54 @@ public class MainActivity extends Activity {
         textStack.addView(utcText);
 
         bar.addView(textStack, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
+                0,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                1f
         ));
+
+        TextView closeHint = createCloseHint();
+        closeHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDeckExpanded(false);
+            }
+        });
+        closeHint.setOnTouchListener(new View.OnTouchListener() {
+            private float startX;
+            private float startY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    startX = event.getRawX();
+                    startY = event.getRawY();
+                    return true;
+                }
+                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
+                    float dx = event.getRawX() - startX;
+                    float dy = event.getRawY() - startY;
+                    if (dx > dp(18) || Math.abs(dx) < dp(8) && Math.abs(dy) < dp(8)) {
+                        setDeckExpanded(false);
+                        return true;
+                    }
+                }
+                return true;
+            }
+        });
+        bar.addView(closeHint, new LinearLayout.LayoutParams(dp(52), dp(30)));
         return bar;
+    }
+
+    private TextView createCloseHint() {
+        TextView hint = new TextView(this);
+        hint.setText(">>>");
+        hint.setTextColor(0xCC9FEAFF);
+        hint.setTextSize(13);
+        hint.setTypeface(Typeface.DEFAULT_BOLD);
+        hint.setGravity(Gravity.CENTER);
+        hint.setBackground(panelBackground(0x3310283A, dp(6), 0x558EDCFF));
+        hint.setIncludeFontPadding(false);
+        return hint;
     }
 
     private LinearLayout createControlPanel() {
@@ -542,7 +586,9 @@ public class MainActivity extends Activity {
             super.onDraw(canvas);
             rect.set(0.5f, 0.5f, getWidth() + dp(2), getHeight() - 0.5f);
             canvas.drawRoundRect(rect, dp(7), dp(7), fillPaint);
+            canvas.drawRect(getWidth() - dp(7), rect.top, getWidth() + dp(2), rect.bottom, fillPaint);
             canvas.drawRoundRect(rect, dp(7), dp(7), strokePaint);
+            canvas.drawLine(getWidth() - 0.5f, rect.top, getWidth() - 0.5f, rect.bottom, strokePaint);
             float cx = getWidth() / 2f;
             float cy = getHeight() / 2f;
             canvas.save();
@@ -1201,6 +1247,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin.sd-receiver-open #openwebrx-panel-receiver{transform:translateX(0)!important;opacity:1!important;pointer-events:auto!important;}"
 
                 + ".signaldeck-skin #openwebrx-panel-receiver:before{content:\\'Receiver\\';position:sticky;top:-10px;z-index:2;display:block;margin:-10px -12px 8px;padding:10px 12px 8px;color:#edf8ff;background:rgba(7,18,27,.99);border-bottom:1px solid rgba(159,234,255,.24);font:700 13px/18px sans-serif;letter-spacing:.4px;}"
+                + ".signaldeck-skin [data-signaldeck-close-hint=true]{position:sticky!important;top:-10px!important;z-index:4!important;display:flex!important;align-items:center!important;justify-content:center!important;width:52px!important;height:32px!important;margin:-42px 0 10px auto!important;border-radius:6px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(16,40,58,.42)!important;color:rgba(215,246,255,.82)!important;font:900 13px/30px sans-serif!important;letter-spacing:1px!important;box-sizing:border-box!important;touch-action:pan-x!important;user-select:none!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-panel-line{margin:6px 0!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver select,.signaldeck-skin #openwebrx-panel-receiver input{border-radius:7px!important;background:#091824!important;color:#edf8ff!important;border:1px solid rgba(159,234,255,.28)!important;}"
                 + ".signaldeck-skin #openwebrx-panel-receiver .openwebrx-button{border-radius:7px!important;background:rgba(16,40,58,.92)!important;border:1px solid rgba(159,234,255,.38)!important;color:#fff!important;}"
@@ -1217,7 +1264,7 @@ public class MainActivity extends Activity {
                 + ".signaldeck-skin #signaldeck-waterfall-controls input[type=range]{width:100%!important;height:24px!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;accent-color:#9feaff!important;}"
                 + ".signaldeck-skin #signaldeck-waterfall-controls .sd-wf-value{text-align:right!important;color:#edf8ff!important;font:700 9px/18px monospace!important;}"
                 + ".signaldeck-skin table[data-signaldeck-decoder-table=true]{display:none!important;}"
-                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;padding:8px 8px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
+                + ".signaldeck-skin .sd-decoder-panel{width:calc(100vw - 16px)!important;max-width:calc(100vw - 16px)!important;margin:8px 8px 10px!important;padding:8px 10px!important;box-sizing:border-box!important;border-radius:10px!important;border:1px solid rgba(159,234,255,.34)!important;background:rgba(0,62,72,.92)!important;box-shadow:0 0 20px rgba(120,214,255,.08),0 12px 28px rgba(0,0,0,.32)!important;color:#edf8ff!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-title{font:800 12px/16px sans-serif!important;color:#edf8ff!important;margin:0 0 7px!important;letter-spacing:.2px!important;}"
                 + ".signaldeck-skin .sd-decoder-grid{display:grid!important;gap:1px!important;background:rgba(159,234,255,.22)!important;border-radius:5px!important;overflow:hidden!important;}"
                 + ".signaldeck-skin .sd-decoder-row{display:grid!important;grid-template-columns:var(--sd-grid,repeat(var(--sd-cols),minmax(0,1fr)))!important;gap:1px!important;min-width:0!important;}"
@@ -1243,8 +1290,9 @@ public class MainActivity extends Activity {
                 + "';"
                 + "var style=document.createElement('style');style.id='signaldeck-skin-style';style.textContent=css;document.head.appendChild(style);"
                 + "function receiverToggle(){return document.querySelector('[data-toggle-panel=\"openwebrx-panel-receiver\"]');}"
+                + "function ensureReceiverCloseHint(){var panel=document.getElementById('openwebrx-panel-receiver');if(!panel){return;}var hint=panel.querySelector('[data-signaldeck-close-hint=true]');if(!hint){hint=document.createElement('div');hint.setAttribute('data-signaldeck-close-hint','true');hint.textContent='>>>';panel.insertBefore(hint,panel.firstChild);var sx=0,sy=0;hint.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;},{passive:true});hint.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(dx>18||Math.abs(dx)<8&&Math.abs(dy)<8){hideReceiver();}},{passive:true});hint.addEventListener('click',hideReceiver);}}"
                 + "function receiverVisible(panel){return !!(panel&&document.documentElement.classList.contains('sd-receiver-open'));}"
-                + "function showReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';document.documentElement.classList.add('sd-receiver-open');hideReceiverSections();ensureWaterfallControls();return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
+                + "function showReceiver(){var panel=document.getElementById('openwebrx-panel-receiver');if(panel){panel.removeAttribute('hidden');panel.style.display='block';panel.style.visibility='visible';document.documentElement.classList.add('sd-receiver-open');hideReceiverSections();ensureReceiverCloseHint();ensureWaterfallControls();return;}var toggle=receiverToggle();if(toggle){toggle.click();}}"
                 + "function hideReceiver(){document.documentElement.classList.remove('sd-receiver-open');}"
                 + "function toggleReceiver(){if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))){hideReceiver();}else{showReceiver();}}"
                 + "window.SignalDeckReceiver={show:showReceiver,hide:hideReceiver,toggle:toggleReceiver,isOpen:function(){return receiverVisible(document.getElementById('openwebrx-panel-receiver'));}};"
@@ -1273,7 +1321,7 @@ public class MainActivity extends Activity {
                 + "function hideNativeImageExpander(){var nodes=document.body?document.body.querySelectorAll('*'):[];for(var i=0;i<nodes.length;i++){var el=nodes[i];if(el.id==='signaldeck-receiver-handle'){continue;}var r=el.getBoundingClientRect();if(!r||r.width<=0||r.height<=0){continue;}var text=(ownText(el)||'').trim().toLowerCase();var key=((el.id||'')+' '+(el.className||'')).toLowerCase();var center=Math.abs((r.left+r.right)/2-window.innerWidth/2);if(center<104&&r.width>=22&&r.width<=150&&r.height>=10&&r.height<=70&&r.top>54&&r.top<122&&(text.length===0||/arrow|expand|collapse|toggle|image|photo|handle/.test(key))){el.style.display='none';el.style.pointerEvents='none';el.setAttribute('data-signaldeck-hidden','true');}if((text==='antena'||text==='antenna'||text.indexOf('autor:')===0||text.indexOf('author:')===0)&&r.top>54&&r.top<window.innerHeight*.5){var box=el;for(var p=el.parentElement;p&&p!==document.body;p=p.parentElement){var pr=p.getBoundingClientRect();if(pr.width>window.innerWidth*.68&&pr.height>36&&pr.height<window.innerHeight*.55){box=p;break;}}box.style.display='none';box.style.pointerEvents='none';box.setAttribute('data-signaldeck-hidden','true');}}}"
                 + "function installReceiverSwipe(){if(window.__signalDeckReceiverSwipe){return;}window.__signalDeckReceiverSwipe=true;var sx=0,sy=0,fromRight=false,onPanel=false;document.addEventListener('touchstart',function(e){var t=(e.touches&&e.touches.length)?e.touches[0]:null;if(!t){return;}sx=t.clientX;sy=t.clientY;fromRight=sx>window.innerWidth-34;onPanel=!!(e.target&&e.target.closest&&e.target.closest('#openwebrx-panel-receiver'));},{passive:true});document.addEventListener('touchend',function(e){var t=(e.changedTouches&&e.changedTouches.length)?e.changedTouches[0]:null;if(!t){return;}var dx=t.clientX-sx,dy=t.clientY-sy;if(Math.abs(dy)>90||Math.abs(dx)<70){return;}if(!receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&fromRight&&dx<-72){showReceiver();return;}if(receiverVisible(document.getElementById('openwebrx-panel-receiver'))&&onPanel&&dx>72){hideReceiver();return;}},{passive:true});}"
 
-                + "function refreshSignalDeckSkin(){hideForeignPanels();hideReceiverSections();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();}function scheduleSignalDeckRefresh(){if(window.__signalDeckRefreshPending){return;}window.__signalDeckRefreshPending=true;setTimeout(function(){window.__signalDeckRefreshPending=false;refreshSignalDeckSkin();},250);}refreshSignalDeckSkin();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(refreshSignalDeckSkin,1500);"
+                + "function refreshSignalDeckSkin(){hideForeignPanels();hideReceiverSections();ensureReceiverCloseHint();tidyDigRow();ensureWaterfallControls();ensureDefaultStep();markDecoderTables();markDecoderOutputs();markMediaDecoderOutputs();hideNativeImageExpander();hideNativeStatusMeters();installReceiverSwipe();}function scheduleSignalDeckRefresh(){if(window.__signalDeckRefreshPending){return;}window.__signalDeckRefreshPending=true;setTimeout(function(){window.__signalDeckRefreshPending=false;refreshSignalDeckSkin();},250);}refreshSignalDeckSkin();setInterval(ensureWaterfallControls,900);setInterval(ensureDefaultStep,900);setInterval(refreshSignalDeckSkin,1500);"
                 + "new MutationObserver(scheduleSignalDeckRefresh).observe(document.body,{childList:true,subtree:true});"
                 + "})();";
     }

@@ -4,6 +4,7 @@
 
 ### Changed
 
+- Added compact >>> close hints to Deck and Receiver, squared side-tab screen edges, and centered decoder card padding.
 - FT8/WSJT decoded packet cards now preserve the OpenWebRX Message/Text column instead of truncating tables to four columns.
 - Suppressed repeated hash-navigation diagnostics and debounced decoder DOM refreshes during tuning.
 - Removed the MAP deck button after testing because it made the mobile flow bulky.
