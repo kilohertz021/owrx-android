@@ -15,13 +15,13 @@ https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 Current public test version:
 
 ```text
-0.1.26
+0.1.27
 ```
 
 Versioned APK:
 
 ```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.26-82f0459.apk
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.27-82f0459.apk
 ```
 
 This is a direct APK test build, not a Google Play release. Android may ask you to allow installation from the browser, Telegram, or your file manager.

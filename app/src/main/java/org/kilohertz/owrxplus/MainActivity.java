@@ -2,8 +2,6 @@ package org.kilohertz.owrxplus;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -345,13 +343,6 @@ public class MainActivity extends Activity {
         brandText.setTextColor(COLOR_TEXT_ICE);
         brandText.setTextSize(12);
         brandText.setSingleLine(true);
-        brandText.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                copyDebugLogToClipboard();
-                return true;
-            }
-        });
         textStack.addView(brandText);
 
         utcText = new TextView(this);
@@ -1458,17 +1449,6 @@ public class MainActivity extends Activity {
             debugLog.delete(0, debugLog.length() - 24000);
         }
         android.util.Log.d("SignalDeck", line);
-    }
-
-    private void copyDebugLogToClipboard() {
-        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        if (clipboard == null) {
-            Toast.makeText(this, "Clipboard unavailable", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String text = debugLog.length() == 0 ? "SignalDeck debug log is empty" : debugLog.toString();
-        clipboard.setPrimaryClip(ClipData.newPlainText("SignalDeck debug log", text));
-        Toast.makeText(this, "SignalDeck debug log copied", Toast.LENGTH_LONG).show();
     }
 
     private void logWebViewSnapshot(final String reason) {

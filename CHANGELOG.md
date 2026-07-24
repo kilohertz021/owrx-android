@@ -4,6 +4,12 @@
 
 No pending changes.
 
+## v0.1.27 - 2026-07-24
+
+### Changed
+
+- Removed the deck title long-press debug-log clipboard shortcut so right-swipe gestures no longer trigger the debug-log copied toast.
+
 ## v0.1.26 - 2026-07-23
 
 ### Changed

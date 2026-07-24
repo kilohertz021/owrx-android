@@ -10,7 +10,7 @@ Latest APK:
 https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 ```
 
-Current public test version: `0.1.26`.
+Current public test version: `0.1.27`.
 
 ## Install
 
@@ -97,5 +97,3 @@ If a public receiver opens with a blank or broken screen:
 - choose another SDR;
 - return to `kilohertz_sdr`;
 - restart the app if the remote receiver left WebView in a bad state.
-
-For debug logs, long-press the SignalDeck title in the deck. Recent WebView diagnostics are copied to the clipboard.

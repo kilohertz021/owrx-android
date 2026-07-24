@@ -17,13 +17,13 @@ https://kilohertz021.org/signaldeck/SignalDeck-latest.apk
 Current public version:
 
 ```text
-0.1.26
+0.1.27
 ```
 
 Versioned APK:
 
 ```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.26-82f0459.apk
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.27-82f0459.apk
 ```
 
 Repository:
