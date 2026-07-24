@@ -23,7 +23,7 @@ Current public version:
 Versioned APK:
 
 ```text
-https://kilohertz021.org/signaldeck/SignalDeck-0.1.27-82f0459.apk
+https://kilohertz021.org/signaldeck/SignalDeck-0.1.27-340cce7.apk
 ```
 
 Repository:
